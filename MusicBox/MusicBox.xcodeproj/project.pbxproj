@@ -45,11 +45,6 @@
 			path = MusicBoxUITests;
 			sourceTree = "<group>";
 		};
-		E0AFB1462E7EBF8700DB66CB /* Data */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Data;
-			sourceTree = "<group>";
-		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -80,7 +75,6 @@
 		E0AFB1122E7EBF6100DB66CB = {
 			isa = PBXGroup;
 			children = (
-				E0AFB1462E7EBF8700DB66CB /* Data */,
 				E0AFB11D2E7EBF6100DB66CB /* MusicBox */,
 				E0AFB12B2E7EBF6300DB66CB /* MusicBoxTests */,
 				E0AFB1352E7EBF6300DB66CB /* MusicBoxUITests */,
@@ -115,7 +109,6 @@
 			);
 			fileSystemSynchronizedGroups = (
 				E0AFB11D2E7EBF6100DB66CB /* MusicBox */,
-				E0AFB1462E7EBF8700DB66CB /* Data */,
 			);
 			name = MusicBox;
 			packageProductDependencies = (
