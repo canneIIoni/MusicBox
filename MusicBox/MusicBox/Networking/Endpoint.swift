@@ -1,26 +1,42 @@
-//
-//  Endpoint.swift
-//  NanoChallenge07
-//
-//   Created by Luca Lacerda on 20/09/25.
-//
-
 import Foundation
 
 enum Endpoint {
-}
 
-extension Endpoint {
+    case release(id: Int)
+    case masterVersions(masterId: Int)
+    case searchReleases(query: String, page: Int?, perPage: Int?)
+
     var host: String {
-        return ""
+        return "api.discogs.com"
     }
-    
+
     var path: String {
-        return ""
+        switch self {
+        case .release(let id):
+            return "/releases/\(id)"
+        case .masterVersions(let masterId):
+            return "/masters/\(masterId)/versions"
+        case .searchReleases:
+            return "/database/search"
+        }
     }
-    
+
     var queryItems: [URLQueryItem]? {
-        return nil
+        switch self {
+        case .release:
+            return nil
+        case .masterVersions:
+            return nil
+        case .searchReleases(let query, let page, let perPage):
+            var items = [URLQueryItem(name: "q", value: query)]
+            if let page = page {
+                items.append(URLQueryItem(name: "page", value: "\(page)"))
+            }
+            if let perPage = perPage {
+                items.append(URLQueryItem(name: "per_page", value: "\(perPage)"))
+            }
+            return items
+        }
     }
 }
 

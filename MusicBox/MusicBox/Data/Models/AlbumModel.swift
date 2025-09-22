@@ -7,9 +7,21 @@
 
 import Foundation
 
+struct SearchResponse: Codable {
+    let pagination: Pagination
+    let results: [Album]
+}
+
+struct Pagination: Codable {
+    let page: Int
+    let pages: Int
+    let per_page: Int
+    let items: Int
+}
+
 // MARK: - Album
-class Album {
-    var id: UUID
+struct Album: Codable {
+    var id: Float
     var name: String
     var year: String
     var imageData: Data?
@@ -18,21 +30,4 @@ class Album {
     // Relacionamentos
     var songs: [Song]
     var reviews: [Review]
-
-    init(id: UUID = UUID(),
-         name: String,
-         year: String,
-         imageData: Data? = nil,
-         artistId: UUID,
-         songs: [Song] = [],
-         reviews: [Review] = []) {
-
-        self.id = id
-        self.name = name
-        self.year = year
-        self.imageData = imageData
-        self.artistId = artistId
-        self.songs = songs
-        self.reviews = reviews
-    }
 }

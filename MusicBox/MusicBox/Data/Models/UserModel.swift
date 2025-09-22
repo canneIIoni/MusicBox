@@ -8,7 +8,7 @@
 import Foundation
 
 // MARK: - User
-class User {
+struct User: Codable {
     var id: String
     var username: String
     var email: String
@@ -17,19 +17,4 @@ class User {
     // Relacionamentos
     var reviews: [Review]
     var comments: [Comment]
-
-    init(id: String,
-         username: String,
-         email: String,
-         profileImageData: Data? = nil,
-         reviews: [Review] = [],
-         comments: [Comment] = []) {
-
-        self.id = id
-        self.username = username
-        self.email = email
-        self.profileImageData = profileImageData
-        self.reviews = reviews
-        self.comments = comments
-    }
 }

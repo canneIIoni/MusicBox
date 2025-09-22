@@ -1,7 +1,7 @@
 import Foundation
 
 // MARK: - Artist
-class Artist {
+struct Artist: Codable {
     var id: UUID
     var name: String
     var bio: String
@@ -10,19 +10,4 @@ class Artist {
 
     // Relacionamentos
     var albums: [Album]
-
-    init(id: UUID = UUID(),
-         name: String,
-         bio: String,
-         genres: [String],
-         imageData: Data? = nil,
-         albums: [Album] = []) {
-
-        self.id = id
-        self.name = name
-        self.bio = bio
-        self.genres = genres
-        self.imageData = imageData
-        self.albums = albums
-    }
 }

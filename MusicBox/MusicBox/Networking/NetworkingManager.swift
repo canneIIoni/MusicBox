@@ -13,8 +13,6 @@ final class NetworkingManager: NetworkManager {
     
     public static let shared: NetworkingManager = .init()
     
-    public static let mock: NetworkManager = MockNetworkingManager()
-    
     private init(){}
     
     func request<T: Codable>(session: URLSession,
