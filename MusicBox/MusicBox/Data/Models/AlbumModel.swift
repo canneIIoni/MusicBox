@@ -1,33 +1,48 @@
 //
 //  AlbumModel.swift
-//  MusicBox
+//  Statik
 //
-//  Created by Luca Lacerda on 20/09/25.
+//  Created by Luca on 28/02/25.
 //
 
+import SwiftData
 import Foundation
+import UIKit
 
-struct SearchResponse: Codable {
-    let pagination: Pagination
-    let results: [Album]
-}
-
-struct Pagination: Codable {
-    let page: Int
-    let pages: Int
-    let per_page: Int
-    let items: Int
-}
-
-// MARK: - Album
-struct Album: Codable {
-    var id: Float
+@Model
+class Album {
+    var id: UUID = UUID()
     var name: String
-    var year: String
+    var artist: String
+    var year: String?
+    var review: String
+    var isLiked: Bool
+    var grade: Double
     var imageData: Data?
-    var artistId: UUID
+    var isLogged: Bool = false
+    var dateLogged: Date? = nil
+    var isSaved: Bool = false
+    @Relationship(deleteRule: .cascade) var songs: [Song] = []
 
-    // Relacionamentos
-    var songs: [Song]
-    var reviews: [Review]
+    init(name: String, artist: String, year: String, review: String, isLiked: Bool, grade: Double, image: UIImage? = nil, songs: [Song] = [], dateLogged: Date) {
+        self.name = name
+        self.artist = artist
+        self.year = year
+        self.review = review
+        self.isLiked = isLiked
+        self.grade = min(max(grade, 0), 5) // Ensure grade is between 0-5
+        self.imageData = image?.jpegData(compressionQuality: 0.8)
+        self.songs = songs
+        self.dateLogged = dateLogged
+    }
+
+
+    var albumImage: UIImage? {
+        if let data = imageData {
+            return UIImage(data: data)
+        }
+        return nil
+    }
 }
+
+

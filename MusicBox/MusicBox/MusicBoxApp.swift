@@ -6,12 +6,14 @@
 //
 
 import SwiftUI
+import SwiftData
 
 @main
 struct MusicBoxApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            AlbumSearchView()
         }
+        .modelContainer(for: Album.self)
     }
 }
