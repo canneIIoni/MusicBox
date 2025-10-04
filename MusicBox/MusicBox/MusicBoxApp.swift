@@ -12,7 +12,7 @@ import SwiftData
 struct MusicBoxApp: App {
     var body: some Scene {
         WindowGroup {
-            AlbumSearchView()
+            CoordinatorView(coordinator: Coordinator())
         }
         .modelContainer(for: Album.self)
     }
