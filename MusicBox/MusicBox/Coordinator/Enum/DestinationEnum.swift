@@ -9,4 +9,5 @@ import Foundation
 
 public enum DestinationEnum: Hashable{
     case search
+    case albumDetail(Album)
 }

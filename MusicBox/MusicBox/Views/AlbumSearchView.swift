@@ -64,7 +64,7 @@ struct AlbumSearchView: View {
                         Image(.musicboxLogo)
                             .resizable()
                             .frame(width: 25, height: 25)
-                        Text("MusicBox")
+                        Text("Statik")
                             .font(.system(size: 25, weight: .bold))
                             .foregroundStyle(.systemRed)
                     }
@@ -79,6 +79,14 @@ struct AlbumSearchView: View {
                 .ignoresSafeArea()
             )
 
+            NavigationLink(
+                destination: selectedAlbum.map { album in
+                    AlbumDetailView(album: album)
+                },
+                isActive: $showDetail,
+                label: { EmptyView() }
+            )
+            .hidden()
         }
     }
 
@@ -152,3 +160,4 @@ struct AlbumSearchView: View {
 #Preview {
     AlbumSearchView()
 }
+

@@ -1,8 +1,8 @@
 //
 //  AlbumModel.swift
-//  Statik
+//  MusicBox
 //
-//  Created by Luca on 28/02/25.
+//  Created by Luca on 29/09/25.
 //
 
 import SwiftData
@@ -10,8 +10,8 @@ import Foundation
 import UIKit
 
 @Model
-class Album {
-    var id: UUID = UUID()
+public class Album {
+    public var id: UUID = UUID()
     var name: String
     var artist: String
     var year: String?
