@@ -5,10 +5,23 @@
 //  Created by Luca on 18/10/25.
 //
 
-
 import SwiftUI
 
 struct AlbumTabView: View {
+    
+    private var authenticationService: (Authenticating & EmailPasswordHandling)
+    private let userManager: UserManager
+    private let loginViewModel: LoginViewModel
+    private let profileViewModel: MainProfileViewModel
+    
+    init() {
+        // Inicializando Firebase Service
+        self.authenticationService = FirebaseAuthService()
+        self.userManager = UserManager()
+        self.loginViewModel = LoginViewModel(authenticationService: authenticationService, userManager: userManager)
+        self.profileViewModel = MainProfileViewModel(authenticationService: authenticationService, userManager: userManager)
+    }
+    
     var body: some View {
         TabView {
             AlbumListView()
@@ -20,6 +33,13 @@ struct AlbumTabView: View {
                 .tabItem {
                     Label("Search Discogs", systemImage: "magnifyingglass")
                 }
+            
+            
+            LoginView(viewModel: loginViewModel)
+                .tabItem {
+                    Label("Login", systemImage: "person.crop.circle")
+                }
+            
         }
     }
 }
