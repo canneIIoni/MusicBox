@@ -70,7 +70,7 @@ struct MainProfileView: View {
 }
 
 #Preview {
-    MainProfileView(viewModel: MainProfileViewModel(authenticationService: FirebaseAuthService(), userManager: UserManager()))
+    MainProfileView(viewModel: MainProfileViewModel(authenticationService: FirebaseAuthService(), userManager: UserFirestoreService()))
 }
 
 
@@ -78,11 +78,11 @@ class MainProfileViewModel: ObservableObject {
    // var coordinator: MainProfileTabCoordinator?
     
     let authenticationService: Authenticating
-    let userManager: UserManager
+    let userManager: UserFirestoreService
     
     @Published private(set) var user: DBUser? = nil
     
-    init(authenticationService: Authenticating, userManager: UserManager) {
+    init(authenticationService: Authenticating, userManager: UserFirestoreService) {
         self.authenticationService = authenticationService
         self.userManager = userManager
     }

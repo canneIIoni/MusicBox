@@ -10,14 +10,14 @@ import SwiftUI
 struct AlbumTabView: View {
     
     private var authenticationService: (Authenticating & EmailPasswordHandling)
-    private let userManager: UserManager
+    private let userManager: UserFirestoreService
     private let loginViewModel: LoginViewModel
     private let profileViewModel: MainProfileViewModel
     
     init() {
         // Inicializando Firebase Service
         self.authenticationService = FirebaseAuthService()
-        self.userManager = UserManager()
+        self.userManager = UserFirestoreService()
         self.loginViewModel = LoginViewModel(authenticationService: authenticationService, userManager: userManager)
         self.profileViewModel = MainProfileViewModel(authenticationService: authenticationService, userManager: userManager)
     }

@@ -10,7 +10,7 @@ import Foundation
 import FirebaseFirestore
 
 // Função de criar um usuário no banco de dados, e fazer um CRUD dele
-class UserManager {
+class UserFirestoreService {
 
     private let userCollection = Firestore.firestore().collection("users")
     

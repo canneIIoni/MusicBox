@@ -10,7 +10,7 @@ import Foundation
 class LoginViewModel: ObservableObject {
     
     var authenticationService: (Authenticating & EmailPasswordHandling)
-    let userManager: UserManager
+    let userManager: UserFirestoreService
     
     @Published var email = ""
     @Published var password = ""
@@ -18,7 +18,7 @@ class LoginViewModel: ObservableObject {
     
     @Published var authenticationState: UserAuthState = .unauthenticated
 
-    init(authenticationService: (Authenticating & EmailPasswordHandling), userManager: UserManager) {
+    init(authenticationService: (Authenticating & EmailPasswordHandling), userManager: UserFirestoreService) {
         self.authenticationService = authenticationService
         self.userManager = userManager
         

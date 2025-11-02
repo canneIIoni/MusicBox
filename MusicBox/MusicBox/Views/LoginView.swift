@@ -60,7 +60,7 @@ struct LoginView: View {
                     .background(.systemRed, in: .rect(cornerRadius: 12))
                 }
             } else {
-                Text("YES")
+                Text("Logged")
             }
            
         }
@@ -69,5 +69,5 @@ struct LoginView: View {
 }
 
 #Preview {
-    LoginView(viewModel: LoginViewModel(authenticationService: FirebaseAuthService(), userManager: UserManager()))
+    LoginView(viewModel: LoginViewModel(authenticationService: FirebaseAuthService(), userManager: UserFirestoreService()))
 }
