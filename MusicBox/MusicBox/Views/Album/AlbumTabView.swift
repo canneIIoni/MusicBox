@@ -9,14 +9,17 @@
 import SwiftUI
 
 struct AlbumTabView: View {
+    @StateObject private var albumListCoordinator = AlbumListCoordinator()
+    @StateObject private var albumSearchCoordinator = AlbumSearchCoordinator()
+    
     var body: some View {
         TabView {
-            AlbumListView()
+            AlbumListCoordinatorView(coordinator: albumListCoordinator)
                 .tabItem {
                     Label("My Albums", systemImage: "music.note.list")
                 }
 
-            AlbumSearchView()
+            AlbumSearchCoordinatorView(coordinator: albumSearchCoordinator)
                 .tabItem {
                     Label("Search Discogs", systemImage: "magnifyingglass")
                 }

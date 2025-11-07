@@ -15,6 +15,8 @@ struct AlbumListView: View {
     @State private var starSize: CGFloat = 25
     @State private var starEditable: Bool = false
     @State private var sortOption: SortOption = .dateLogged // Default sorting by date
+    
+    @ObservedObject var coordinator: AlbumListCoordinator
 
     enum SortOption: String, CaseIterable, Identifiable {
         case artist = "Artist"
@@ -36,61 +38,62 @@ struct AlbumListView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            ZStack {
-                LinearGradient(
-                    gradient: Gradient(colors: [Color.backgroundColorDark, Color.background]), // Adjust colors here
-                    startPoint: .top,
-                    endPoint: .center
-                )
-                .ignoresSafeArea()
+        ZStack {
+            LinearGradient(
+                gradient: Gradient(colors: [Color.backgroundColorDark, Color.background]), // Adjust colors here
+                startPoint: .top,
+                endPoint: .center
+            )
+            .ignoresSafeArea()
 
-                VStack(alignment: .leading) {
-                    Text("Logged Albums")
+            VStack(alignment: .leading) {
+                Text("Logged Albums")
+                    .font(.system(size: 25, weight: .bold))
+                    .padding(.vertical)
+                    .padding(.leading)
+
+                Picker("Sort by", selection: $sortOption) {
+                    ForEach(SortOption.allCases) { option in
+                        Text(option.rawValue).tag(option)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .padding(.horizontal)
+
+                List {
+                    ForEach(sortedAlbums) { album in
+                        Button(action: {
+                            coordinator.navigate(to: .albumDetail(album))
+                        }) {
+                            AlbumComponentView(album: .constant(album))
+                        }
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear)
+                    }
+                    .onDelete(perform: deleteAlbum) // Enables swipe-to-delete
+                }
+                .scrollContentBackground(.hidden)
+                .listStyle(.plain)
+            }
+        }
+        .navigationTitle("")
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                HStack {
+                    Image(.musicboxLogo)
+                        .resizable()
+                        .frame(width: 25, height: 25)
+                    Text("Statik")
                         .font(.system(size: 25, weight: .bold))
-                        .padding(.vertical)
-                        .padding(.leading)
-
-                    Picker("Sort by", selection: $sortOption) {
-                        ForEach(SortOption.allCases) { option in
-                            Text(option.rawValue).tag(option)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-                    .padding(.horizontal)
-
-                    List {
-                        ForEach(sortedAlbums) { album in
-                            NavigationLink(destination: AlbumDetailView(album: album)) {
-                                AlbumComponentView(album: .constant(album))
-                            }
-                            .listRowSeparator(.hidden)
-                            .listRowBackground(Color.clear)
-                        }
-                        .onDelete(perform: deleteAlbum) // Enables swipe-to-delete
-                    }
-                    .scrollContentBackground(.hidden)
-                    .listStyle(.plain)
+                        .foregroundStyle(.systemRed)
                 }
             }
-            .navigationTitle("")
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    HStack {
-                        Image(.musicboxLogo)
-                            .resizable()
-                            .frame(width: 25, height: 25)
-                        Text("Statik")
-                            .font(.system(size: 25, weight: .bold))
-                            .foregroundStyle(.systemRed)
-                    }
-                }
 
-                ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItem(placement: .topBarTrailing) {
 //                    Notification Bell
-                }
             }
-        }.onAppear {
+        }
+        .onAppear {
             for album in albums {
                 if !album.isLogged {
                     album.dateLogged = Date()
@@ -111,6 +114,6 @@ struct AlbumListView: View {
 }
 
 #Preview {
-    AlbumListView()
+    AlbumListView(coordinator: AlbumListCoordinator())
         .modelContainer(for: Album.self, inMemory: true) // In-memory for preview
 }

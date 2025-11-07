@@ -13,81 +13,70 @@ struct AlbumSearchView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = AlbumSearchViewModel()
+    
+    @ObservedObject var coordinator: AlbumSearchCoordinator
 
-    @State private var selectedAlbum: Album?
-    @State private var showDetail = false
     @State private var isLoadingDetail = false
 
     var body: some View {
-        NavigationStack {
-            VStack {
-                HStack {
-                    Text("Search Albums")
-                        .font(.system(size: 25, weight: .bold))
-                        .padding(.vertical)
-                        .padding(.leading)
-                    Spacer()
-                }
-                HStack {
-                    TextField("Search Discogs albums...", text: $viewModel.searchText)
-                        .padding(10)
-                        .background(RoundedRectangle(cornerRadius: 10).fill(Color.backgroundColorDark))
-                }
-                .padding(.horizontal)
+        VStack {
+            HStack {
+                Text("Search Albums")
+                    .font(.system(size: 25, weight: .bold))
+                    .padding(.vertical)
+                    .padding(.leading)
+                Spacer()
+            }
+            HStack {
+                TextField("Search Discogs albums...", text: $viewModel.searchText)
+                    .padding(10)
+                    .background(RoundedRectangle(cornerRadius: 10).fill(Color.backgroundColorDark))
+            }
+            .padding(.horizontal)
 
-                if viewModel.isSearching {
-                    ProgressView()
-                        .padding()
-                }
+            if viewModel.isSearching {
+                ProgressView()
+                    .padding()
+            }
 
-                List {
-                    ForEach(viewModel.searchResults) { result in
-                        VStack(alignment: .leading) {
-                            AlbumComponentView(
-                                album: .constant(dummyAlbum(from: result)),
-                                remoteImageURL: result.thumb ?? result.cover_image
-                            )
-                            .onTapGesture {
-                                fetchDiscogsAlbum(id: result.id)
-                            }
+            List {
+                ForEach(viewModel.searchResults) { result in
+                    VStack(alignment: .leading) {
+                        AlbumComponentView(
+                            album: .constant(dummyAlbum(from: result)),
+                            remoteImageURL: result.thumb ?? result.cover_image
+                        )
+                        .onTapGesture {
+                            fetchDiscogsAlbum(id: result.id)
                         }
-                        .listRowSeparator(.hidden)
-                        .listRowBackground(Color.clear)
                     }
-                }
-                .scrollContentBackground(.hidden)
-                .listStyle(.plain)
-            }
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    HStack {
-                        Image(.musicboxLogo)
-                            .resizable()
-                            .frame(width: 25, height: 25)
-                        Text("Statik")
-                            .font(.system(size: 25, weight: .bold))
-                            .foregroundStyle(.systemRed)
-                    }
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
                 }
             }
-            .background(
-                LinearGradient(
-                    gradient: Gradient(colors: [Color.backgroundColorDark, Color.background]),
-                    startPoint: .top,
-                    endPoint: .center
-                )
-                .ignoresSafeArea()
-            )
-
-            NavigationLink(
-                destination: selectedAlbum.map { album in
-                    AlbumDetailView(album: album)
-                },
-                isActive: $showDetail,
-                label: { EmptyView() }
-            )
-            .hidden()
+            .scrollContentBackground(.hidden)
+            .listStyle(.plain)
         }
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                HStack {
+                    Image(.musicboxLogo)
+                        .resizable()
+                        .frame(width: 25, height: 25)
+                    Text("Statik")
+                        .font(.system(size: 25, weight: .bold))
+                        .foregroundStyle(.systemRed)
+                }
+            }
+        }
+        .background(
+            LinearGradient(
+                gradient: Gradient(colors: [Color.backgroundColorDark, Color.background]),
+                startPoint: .top,
+                endPoint: .center
+            )
+            .ignoresSafeArea()
+        )
     }
 
     private func dummyAlbum(from result: DiscogsSearchResult) -> Album {
@@ -106,7 +95,6 @@ struct AlbumSearchView: View {
 
     private func fetchDiscogsAlbum(id: Int) {
         isLoadingDetail = true
-        selectedAlbum = nil
 
         Task {
             do {
@@ -140,8 +128,7 @@ struct AlbumSearchView: View {
                 )
 
                 await MainActor.run {
-                    selectedAlbum = album
-                    showDetail = true
+                    coordinator.navigate(to: .albumDetail(album))
                     isLoadingDetail = false
                 }
 
@@ -158,6 +145,6 @@ struct AlbumSearchView: View {
 }
 
 #Preview {
-    AlbumSearchView()
+    AlbumSearchView(coordinator: AlbumSearchCoordinator())
 }
 
