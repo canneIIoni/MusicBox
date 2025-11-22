@@ -9,17 +9,20 @@ import SwiftUI
 
 struct AlbumTabView: View {
     
-    private var authenticationService: (Authenticating & EmailPasswordHandling)
-    private let userManager: UserFirestoreService
-    private let loginViewModel: LoginViewModel
-    private let profileViewModel: MainProfileViewModel
+    @StateObject private var albumListCoordinator = AlbumListCoordinator()
+    @StateObject private var albumSearchCoordinator = AlbumSearchCoordinator()
     
-    init() {
-        // Inicializando Firebase Service
-        self.authenticationService = FirebaseAuthService()
-        self.userManager = UserFirestoreService()
-        self.loginViewModel = LoginViewModel(authenticationService: authenticationService, userManager: userManager)
-        self.profileViewModel = MainProfileViewModel(authenticationService: authenticationService, userManager: userManager)
+    @ObservedObject var authenticationService: FirebaseAuthService
+    private let userManager = UserFirestoreService()
+    @StateObject private var profileViewModel: MainProfileViewModel
+    
+    init(authenticationService: FirebaseAuthService) {
+        self.authenticationService = authenticationService
+        let userManager = UserFirestoreService()
+        self._profileViewModel = StateObject(wrappedValue: MainProfileViewModel(
+            authenticationService: authenticationService,
+            userManager: userManager
+        ))
     }
     
     var body: some View {
@@ -34,16 +37,14 @@ struct AlbumTabView: View {
                     Label("Search Discogs", systemImage: "magnifyingglass")
                 }
             
-            
-            LoginView(viewModel: loginViewModel)
+            MainProfileView(viewModel: profileViewModel)
                 .tabItem {
-                    Label("Login", systemImage: "person.crop.circle")
+                    Label("Profile", systemImage: "person.fill")
                 }
-            
         }
     }
 }
 
 #Preview {
-    AlbumTabView()
+    AlbumTabView(authenticationService: FirebaseAuthService())
 }

@@ -32,6 +32,14 @@ struct AuthDataResultModel {
         self.photoUrl = user.photoURL?.absoluteString
         self.isAnonymous = user.isAnonymous
     }
+    
+    // Direct initializer for debug mode
+    init(uid: String, email: String?, photoUrl: String? = nil, isAnonymous: Bool = false) {
+        self.uid = uid
+        self.email = email
+        self.photoUrl = photoUrl
+        self.isAnonymous = isAnonymous
+    }
 }
 
 protocol Authenticating {
@@ -81,6 +89,11 @@ class FirebaseAuthService: Authenticating, ObservableObject {
     var user: User?
     
     private var authStateHandle: AuthStateDidChangeListenerHandle?
+    
+    // Debug mode flag - when true, bypasses Firebase
+    private var isDebugMode = false
+    private var debugUserId = "debug-user-id"
+    private var debugEmail = DebugConfig.hardcodedEmail
 
     
     init() {
@@ -98,7 +111,32 @@ class FirebaseAuthService: Authenticating, ObservableObject {
         }
     }
     
+    // MARK: - Debug Methods
+    
+    func setAuthenticatedForDebug(userId: String = "debug-user-id", email: String = DebugConfig.hardcodedEmail) {
+        // Bypass Firebase authentication - just set as authenticated for debug mode
+        // This doesn't actually authenticate with Firebase, just sets the state
+        Task { @MainActor in
+            self.isDebugMode = true
+            self.debugUserId = userId
+            self.debugEmail = email
+            self.authenticationState = .authenticated
+            self.onAuthStateChanged?(.authenticated)
+            print("✅ Debug mode: User authenticated (bypassing Firebase)")
+        }
+    }
+    
     func getAuthenticatedUser() throws -> AuthDataResultModel {
+        // If in debug mode, return mock user data
+        if isDebugMode && authenticationState == .authenticated {
+            return AuthDataResultModel(
+                uid: debugUserId,
+                email: debugEmail,
+                photoUrl: nil,
+                isAnonymous: false
+            )
+        }
+        
         guard let user = Auth.auth().currentUser else {
             throw URLError(.badServerResponse)
         }
@@ -121,6 +159,19 @@ class FirebaseAuthService: Authenticating, ObservableObject {
     }
     
     func signOut() throws {
+        // Check if we're in debug mode
+        if isDebugMode {
+            // Debug mode - just set state to unauthenticated
+            Task { @MainActor in
+                self.isDebugMode = false
+                self.authenticationState = .unauthenticated
+                self.onAuthStateChanged?(.unauthenticated)
+                print("✅ Debug user signed out")
+            }
+            return
+        }
+        
+        // Normal sign out with Firebase
         try Auth.auth().signOut()
     }
     
