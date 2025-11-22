@@ -27,6 +27,8 @@ struct AlbumDetailView: View {
     @State private var imageSize: CGFloat = 147
     @State private var opacityValue: Double = 0.0
     
+    var coordinator: AlbumListCoordinator?
+    
     var isDuplicate: Bool {
         let name = album.name
         let artist = album.artist

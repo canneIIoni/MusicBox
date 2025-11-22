@@ -17,14 +17,22 @@ final class NetworkingManager: NetworkManager {
     
     func request<T: Codable>(session: URLSession,
                              _ endpoint: Endpoint,
-                             type: T.Type) async throws -> T {
+                             type: T.Type,
+                             headers: [String: String]? = nil) async throws -> T {
         
         guard let url = endpoint.url else {
             Logger.networkingManager.error("Failed to make a request due to invalid url")
             throw URLError(.badURL)
         }
         
-        let request = URLRequest(url: url)
+        var request = URLRequest(url: url)
+        
+        if let headers = headers {
+            for (key, value) in headers {
+                request.setValue(value, forHTTPHeaderField: key)
+            }
+        }
+        
         Logger.networkingManager.info("Making a request to: \(url)")
         let (data, response) = try await session.data(for: request)
         

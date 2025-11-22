@@ -7,18 +7,6 @@
 
 import Foundation
 
-// MARK: - Networking Abstraction
-
-protocol NetworkSession {
-    func data(for request: URLRequest) async throws -> (Data, URLResponse)
-}
-
-extension URLSession: NetworkSession {
-    func data(for request: URLRequest) async throws -> (Data, URLResponse) {
-        try await data(for: request, delegate: nil)
-    }
-}
-
 // MARK: - Discogs Models
 
 struct DiscogsMasterRelease: Codable {
@@ -49,37 +37,33 @@ struct DiscogsTrack: Codable {
 // MARK: - Discogs Service
 
 class DiscogsService {
-    private let baseURL = "https://api.discogs.com"
-    private let token = "SCTuZavpfmnVCmsVaDPajUmnoVCJrlRViwRFPuvE"
-    private let session: NetworkSession
+    private let networkManager: NetworkManager
+    private let session: URLSession
 
-    init(session: NetworkSession = URLSession.shared) {
+    init(networkManager: NetworkManager = NetworkingManager.shared, session: URLSession = .shared) {
+        self.networkManager = networkManager
         self.session = session
     }
 
     func searchAlbums(query: String) async throws -> [DiscogsSearchResult] {
-        var components = URLComponents(string: "\(baseURL)/database/search")!
-        components.queryItems = [
-            URLQueryItem(name: "q", value: query),
-            URLQueryItem(name: "type", value: "master")
-        ]
-
-        let url = components.url!
-        var request = URLRequest(url: url)
-        request.setValue("Discogs token=\(token)", forHTTPHeaderField: "Authorization")
-
-        let (data, _) = try await session.data(for: request)
-        let decoded = try JSONDecoder().decode(DiscogsSearchResponse.self, from: data)
-        return decoded.results
+        let endpoint = Endpoint.searchMasters(query: query, page: nil, perPage: nil)
+        let response = try await networkManager.request(
+            session: session,
+            endpoint,
+            type: DiscogsSearchResponse.self,
+            headers: APIConfiguration.discogsHeaders
+        )
+        return response.results
     }
 
     func fetchMasterRelease(id: Int) async throws -> DiscogsMasterRelease {
-        let url = URL(string: "\(baseURL)/masters/\(id)")!
-        var request = URLRequest(url: url)
-        request.setValue("Discogs token=\(token)", forHTTPHeaderField: "Authorization")
-
-        let (data, _) = try await session.data(for: request)
-        return try JSONDecoder().decode(DiscogsMasterRelease.self, from: data)
+        let endpoint = Endpoint.masterRelease(id: id)
+        return try await networkManager.request(
+            session: session,
+            endpoint,
+            type: DiscogsMasterRelease.self,
+            headers: APIConfiguration.discogsHeaders
+        )
     }
 }
 

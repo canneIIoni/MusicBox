@@ -1,6 +1,6 @@
 //
 //  NetworkingLogger.swift
-//  NanoChallenge07
+//  MusicBox
 //
 //  Created by Luca Lacerda on 20/09/25.
 //
