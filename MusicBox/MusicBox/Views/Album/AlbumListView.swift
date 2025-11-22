@@ -83,7 +83,7 @@ struct AlbumListView: View {
                     Image(.musicboxLogo)
                         .resizable()
                         .frame(width: 25, height: 25)
-                    Text("Statik")
+                    Text("Music Box")
                         .font(.system(size: 25, weight: .bold))
                         .foregroundStyle(.systemRed)
                 }
