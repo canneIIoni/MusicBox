@@ -21,7 +21,7 @@ struct RegisterView: View {
                         .resizable()
                         .frame(width: 80, height: 80)
                     
-                    Text("Music Box")
+                    Text("MusicBox")
                         .font(.system(size: 40, weight: .bold))
                         .foregroundStyle(.systemRed)
                     

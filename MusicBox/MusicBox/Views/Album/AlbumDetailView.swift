@@ -148,11 +148,11 @@ struct AlbumDetailView: View {
                 VStack(alignment: .leading) {
                     ForEach(album.songs.sorted { $0.trackNumber < $1.trackNumber }) { song in
                         if album.isSaved {
-//                            NavigationLink(destination: SongDetailView(song: song, album: $album)) {
-//                                SongComponentView(song: .constant(song), artist: .constant($album.wrappedValue.artist), smallStarSize: .constant(17))
-//                                    .padding(.vertical, 8)
-//                                    .transition(.opacity)
-//                            }
+                            NavigationLink(destination: SongDetailView(song: song, album: $album)) {
+                                SongComponentView(song: .constant(song), artist: .constant($album.wrappedValue.artist), smallStarSize: .constant(17))
+                                    .padding(.vertical, 8)
+                                    .transition(.opacity)
+                            }
                         } else {
                             SearchedSongComponentView(song: .constant(song), artist: .constant($album.wrappedValue.artist), smallStarSize: .constant(17))
                                 .padding(.vertical, 8)
@@ -176,11 +176,11 @@ struct AlbumDetailView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 if album.isSaved {
-//                    NavigationLink(destination: AlbumReviewView(album: $album)) {
-//                        Text("Log")
-//                            .font(.system(size: 18, weight: .bold))
-//                            .foregroundStyle(.systemRed)
-//                    }.transition(.opacity)
+                    NavigationLink(destination: AlbumReviewView(album: $album)) {
+                        Text("Log")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundStyle(.systemRed)
+                    }.transition(.opacity)
                 } else {
                     Button {
                         withAnimation {

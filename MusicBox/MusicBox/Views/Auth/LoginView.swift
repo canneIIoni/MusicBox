@@ -14,17 +14,18 @@ struct LoginView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-            VStack(spacing: 40) {
+            VStack(spacing: 20) {
                 VStack(spacing: 16) {
-                    Image(.musicboxLogo)
+                    
+                    Spacer().frame(height: 20)
+
+                    Image("TextLogo")
                         .resizable()
-                        .frame(width: 80, height: 80)
+                        .scaledToFit()
+                        .frame(height: 100)
+                        .padding(.horizontal, 20)
                     
-                    Text("Music Box")
-                        .font(.system(size: 40, weight: .bold))
-                        .foregroundStyle(.systemRed)
-                    
-                    Text("Welcome back")
+                    Text("Welcome back!")
                         .font(.system(size: 20, weight: .medium))
                         .foregroundStyle(.secondaryText)
                 }
