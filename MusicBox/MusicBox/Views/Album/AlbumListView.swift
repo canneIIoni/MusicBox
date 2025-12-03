@@ -9,111 +9,83 @@
 import SwiftUI
 import SwiftData
 
-struct AlbumListView: View {
+struct ReviewListView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query private var albums: [Album] // Automatically fetches from SwiftData
+    @Query private var reviews: [AlbumReview] // Fetch reviews from SwiftData
+
     @State private var starSize: CGFloat = 25
-    @State private var starEditable: Bool = false
-    @State private var sortOption: SortOption = .dateLogged // Default sorting by date
-    
+    @State private var sortOption: SortOption = .date // Default sorting by date
+
     @ObservedObject var coordinator: AlbumListCoordinator
 
     enum SortOption: String, CaseIterable, Identifiable {
-        case artist = "Artist"
         case album = "Album"
-        case dateLogged = "Date Logged"
+        case artist = "Artist"
+        case date = "Date"
 
         var id: String { self.rawValue }
     }
 
-    var sortedAlbums: [Album] {
+    var sortedReviews: [AlbumReview] {
         switch sortOption {
-        case .artist:
-            return albums.sorted { $0.artist.localizedCompare($1.artist) == .orderedAscending }
         case .album:
-            return albums.sorted { $0.name.localizedCompare($1.name) == .orderedAscending }
-        case .dateLogged:
-            return albums.sorted { $0.dateLogged ?? Date() > $1.dateLogged ?? Date() }
+            return reviews.sorted { $0.album.name.localizedCompare($1.album.name) == .orderedAscending }
+        case .artist:
+            return reviews.sorted { $0.album.artist.localizedCompare($1.album.artist) == .orderedAscending }
+        case .date:
+            return reviews.sorted { $0.date > $1.date }
         }
     }
 
     var body: some View {
-        ZStack {
-            LinearGradient(
-                gradient: Gradient(colors: [Color.backgroundColorDark, Color.background]), // Adjust colors here
-                startPoint: .top,
-                endPoint: .center
-            )
-            .ignoresSafeArea()
+        VStack(alignment: .leading) {
+            Text("Logged Reviews")
+                .font(.system(size: 25, weight: .bold))
+                .padding(.vertical)
+                .padding(.leading)
 
-            VStack(alignment: .leading) {
-                Text("Logged Albums")
-                    .font(.system(size: 25, weight: .bold))
-                    .padding(.vertical)
-                    .padding(.leading)
+            Picker("Sort by", selection: $sortOption) {
+                ForEach(SortOption.allCases) { option in
+                    Text(option.rawValue).tag(option)
+                }
+            }
+            .pickerStyle(.segmented)
+            .padding(.horizontal)
 
-                Picker("Sort by", selection: $sortOption) {
-                    ForEach(SortOption.allCases) { option in
-                        Text(option.rawValue).tag(option)
+            List {
+                ForEach(sortedReviews) { review in
+                    Button {
+                        coordinator.navigate(to: .reviewDetail(review))
+                    } label: {
+                        ReviewRowView(review: review)
                     }
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
                 }
-                .pickerStyle(.segmented)
-                .padding(.horizontal)
-
-                List {
-                    ForEach(sortedAlbums) { album in
-                        Button(action: {
-                            coordinator.navigate(to: .albumDetail(album))
-                        }) {
-                            AlbumComponentView(album: .constant(album))
-                        }
-                        .listRowSeparator(.hidden)
-                        .listRowBackground(Color.clear)
-                    }
-                    .onDelete(perform: deleteAlbum) // Enables swipe-to-delete
-                }
-                .scrollContentBackground(.hidden)
-                .listStyle(.plain)
+                .onDelete(perform: deleteReview)
             }
-        }
-        .navigationTitle("")
-        .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                HStack {
-                    Image(.musicboxLogo)
-                        .resizable()
-                        .frame(width: 25, height: 25)
-                    Text("MusicBox")
-                        .font(.system(size: 25, weight: .bold))
-                        .foregroundStyle(.systemRed)
-                }
-            }
-
-            ToolbarItem(placement: .topBarTrailing) {
-//                    Notification Bell
-            }
-        }
-        .onAppear {
-            for album in albums {
-                if !album.isLogged {
-                    album.dateLogged = Date()
-                }
-            }
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
         }
     }
 
-    private func deleteAlbum(at offsets: IndexSet) {
+    private func deleteReview(at offsets: IndexSet) {
         for index in offsets {
-            let albumToDelete = sortedAlbums[index]
-            if let actualIndex = albums.firstIndex(where: { $0.id == albumToDelete.id }) {
-                modelContext.delete(albums[actualIndex])
-            }
+            let reviewToDelete = sortedReviews[index]
+            modelContext.delete(reviewToDelete)
         }
         try? modelContext.save()
     }
 }
 
-#Preview {
-    AlbumListView(coordinator: AlbumListCoordinator())
-        .modelContainer(for: Album.self, inMemory: true) // In-memory for preview
+struct ReviewRowView: View {
+    var review: AlbumReview
+    var body: some View {
+        VStack(alignment: .leading) {
+            Text("\(review.album.name) · \(review.album.artist)").bold()
+            RatingView(rating: .constant(review.rating), starSize: .constant(20), editable: .constant(false))
+            Text(review.text).lineLimit(2)
+        }.padding(.vertical, 4)
+    }
 }
+

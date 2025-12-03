@@ -13,32 +13,30 @@ struct SearchedSongComponentView: View {
     @Binding var song: Song
     @Binding var artist: String
     @Binding var smallStarSize: CGFloat
+    
     var body: some View {
         HStack {
-            VStack(alignment: .leading) {
-                HStack(alignment: .bottom) {
-                    Text("\(song.title) ")
-                        .font(.system(size: 20))
-                        .multilineTextAlignment(.leading)
-                    RatingView(
-                        rating: Binding(
-                            get: { song.grade },
-                            set: { song.grade = $0 }
-                        ),
-                        starSize: $smallStarSize,
-                        editable: .constant(false)
-                    ).allowsHitTesting(false)
-                        .padding(.bottom, 3.2)
-                        .opacity(0)
-                    // VERY MUCH THE WRONG THING TO DO, THIS IS SOME NASTY IMPROV
-                }
-                Text("\(artist)")
+            VStack(alignment: .leading, spacing: 4) {
+                // Song title
+                Text(song.title)
+                    .font(.system(size: 20))
+                    .multilineTextAlignment(.leading)
+                    .lineLimit(2)
+                
+                // Artist name
+                Text(artist)
                     .font(.system(size: 14))
                     .foregroundColor(.gray)
                     .multilineTextAlignment(.leading)
             }
+            
             Spacer()
+            
+            Image(systemName: "chevron.right")
+                .font(.system(size: 13, weight: .bold))
+                .foregroundColor(.secondary.opacity(0.5))
         }
+        .padding(.vertical, 4)
     }
 }
 

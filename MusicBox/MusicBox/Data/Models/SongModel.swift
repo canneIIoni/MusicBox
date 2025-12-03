@@ -7,22 +7,23 @@
 
 import SwiftData
 import Foundation
-import UIKit
 
 @Model
 class Song {
-    var id: UUID = UUID()
+    @Attribute(.unique) var id: String // Spotify/Discogs track ID
     var title: String
-    var isLiked: Bool
-    var grade: Double
-    var review: String
     var trackNumber: Int
+    var duration: Int? // seconds
 
-    init(title: String, isLiked: Bool, grade: Double, review: String, trackNumber: Int) {
+    @Relationship(inverse: \Album.songs)
+    var album: Album
+
+    init(id: String, title: String, trackNumber: Int, duration: Int? = nil, album: Album) {
+        self.id = id
         self.title = title
-        self.isLiked = isLiked
-        self.grade = min(max(grade, 0), 5) // Ensuring grade is between 0-5
-        self.review = review
         self.trackNumber = trackNumber
+        self.duration = duration
+        self.album = album
     }
 }
+

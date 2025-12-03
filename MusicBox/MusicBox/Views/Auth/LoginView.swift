@@ -49,6 +49,7 @@ struct LoginView: View {
                                 RoundedRectangle(cornerRadius: 12)
                                     .fill(Color.backgroundColorDark)
                             )
+                            .accessibilityIdentifier("loginEmailField")
                     }
                     
                     // Password Field
@@ -64,6 +65,7 @@ struct LoginView: View {
                                 RoundedRectangle(cornerRadius: 12)
                                     .fill(Color.backgroundColorDark)
                             )
+                            .accessibilityIdentifier("loginPasswordField")
                     }
                     
                     // Error Message
@@ -74,6 +76,12 @@ struct LoginView: View {
                             .padding(.horizontal)
                             .multilineTextAlignment(.center)
                     }
+                    
+                    // MARK: - Auto Login Checkbox
+                                    Toggle(isOn: $viewModel.autoLoginEnabled) {
+                                        Text("Keep me logged in")
+                                    }
+                                    .accessibilityIdentifier("autoLoginToggle")
                     
                     // Log In Button
                     Button {
@@ -98,6 +106,7 @@ struct LoginView: View {
                     }
                     .disabled(viewModel.email.isEmpty || viewModel.password.isEmpty || viewModel.isLoading)
                     .padding(.top, 20)
+                    .accessibilityIdentifier("loginButton")
                     
                     // Sign Up Link
                     HStack {

@@ -43,17 +43,28 @@ public class AlbumListCoordinator: ObservableObject {
     }
     
     func buildAlbumList() -> AnyView {
-        return AnyView(AlbumListView(coordinator: self))
+        return AnyView(ReviewListView(coordinator: self))
     }
     
-    func buildAlbumDetail(album: Album) -> AnyView {
-        return AnyView(AlbumDetailView(album: album, coordinator: self))
+    func buildAlbumDetail(album: Album, userId: String, username: String?) -> AnyView {
+        AnyView(AlbumDetailView(album: album, userId: userId, username: username, coordinator: self))
     }
     
-    public func view(for state: AlbumListDestinationEnum) -> AnyView {
+    func buildReviewDetail(albumReview: AlbumReview) -> AnyView {
+        AnyView(ReviewDetailView(review: albumReview))
+    }
+    
+    /// Updated to accept user info and return the correct view
+    public func view(for state: AlbumListDestinationEnum, userId: String? = nil, username: String? = nil) -> AnyView {
         switch state {
         case .albumDetail(let album):
-            return buildAlbumDetail(album: album)
+            guard let userId else {
+                fatalError("userId must be provided for AlbumDetailView")
+            }
+            return buildAlbumDetail(album: album, userId: userId, username: username)
+            
+        case .reviewDetail(let albumReview):
+            return buildReviewDetail(albumReview: albumReview)
         }
     }
 }

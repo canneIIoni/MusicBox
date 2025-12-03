@@ -7,14 +7,16 @@
 
 
 import SwiftUI
+import SwiftData
 
 struct AlbumReviewView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
-    @Binding var album: Album
+    @Binding var review: AlbumReview
+    
     @State private var starSize: CGFloat = 37
     @State private var starEditable: Bool = true
-    @State private var review: String = ""
+    @State private var reviewText: String = ""
     @State private var rating: Double = 0
     @State private var showWarning = false
     @State private var imageSize: CGFloat = 65
@@ -22,17 +24,17 @@ struct AlbumReviewView: View {
     var body: some View {
         VStack {
             HStack {
-                
-                ImageComponent(album: $album, imageSize: $imageSize)
+                // Album image
+                ImageComponent(album: .constant(review.album), imageSize: $imageSize)
                 
                 VStack(alignment: .leading) {
-                    Text("Album · \(album.year ?? "Unknown Year")")
+                    Text("Album · \(review.album.year ?? "Unknown Year")")
                         .font(.caption)
                         .foregroundStyle(.secondaryText)
-                    Text(album.name)
+                    Text(review.album.name)
                         .font(.title2)
                         .bold()
-                    Text(album.artist)
+                    Text(review.album.artist)
                         .font(.system(size: 16))
                     Spacer()
                 }.frame(height: 65)
@@ -47,24 +49,26 @@ struct AlbumReviewView: View {
                 VStack(alignment: .leading) {
                     Text("Rating")
                         .font(.system(size: 16, weight: .bold))
-                    RatingView(rating: $album.grade, starSize: $starSize, editable: $starEditable)
+                    RatingView(rating: $review.rating, starSize: $starSize, editable: $starEditable)
+                        .accessibilityIdentifier("albumReviewRatingView")
                 }.padding(.bottom)
                 
                 Spacer()
                 
                 VStack(alignment: .center) {
-                    if album.isLiked {
+                    if review.isLiked {
                         Text("Liked").font(.system(size: 16, weight: .bold))
                     } else {
                         Text("Like").font(.system(size: 16, weight: .bold))
                     }
                     Button(action: toggleLike) {
-                        Image(systemName: album.isLiked ? "heart.circle.fill" : "heart.circle")
+                        Image(systemName: review.isLiked ? "heart.circle.fill" : "heart.circle")
                             .foregroundColor(.systemRed)
                             .font(.system(size: 37, weight: .bold))
-                    }.offset(y: 4)
+                    }
+                    .offset(y: 4)
+                    .accessibilityIdentifier("albumReviewLikeButton")
                 }.padding(.bottom)
-                    
             }
             
             Divider().padding(.bottom)
@@ -75,12 +79,12 @@ struct AlbumReviewView: View {
                 Spacer()
             }
 
-            TextField("", text: $review, prompt: Text("Write a review..."), axis: .vertical)
+            TextField("", text: $reviewText, prompt: Text("Write a review..."), axis: .vertical)
                 .padding()
                 .background(RoundedRectangle(cornerRadius: 10).fill(Color.backgroundColorDark))
                 .lineLimit(6, reservesSpace: true)
+                .accessibilityIdentifier("albumReviewTextField")
                 
-
             Spacer()
         }
         .padding()
@@ -88,11 +92,7 @@ struct AlbumReviewView: View {
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button {
-                    print(album.review)
-                    print(review)
-                    print(album.grade)
-                    print(rating)
-                    if album.review != review || album.grade != rating {
+                    if review.text != reviewText || review.rating != rating {
                         showWarning = true
                     } else {
                         dismiss()
@@ -105,26 +105,24 @@ struct AlbumReviewView: View {
             }
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
-                    let dateFormatter = DateFormatter()
-                    dateFormatter.dateFormat = "dd/MM/yy"
-                    album.review = review
-                    rating = album.grade
-                    album.dateLogged = Date()
-                    album.isLogged = true
-                    try? modelContext.save() // Ensure Core Data saves the changes
+                    review.text = reviewText
+                    review.rating = rating
+                    review.date = Date()
+                    try? modelContext.save()
                     dismiss()
                 } label: {
                     Text("Save")
                         .font(.system(size: 18, weight: .bold))
                         .foregroundStyle(.systemRed)
                 }
+                .accessibilityIdentifier("albumReviewSaveButton")
             }
-            
-        }.alert("Are you sure?", isPresented: $showWarning) {
+        }
+        .alert("Are you sure?", isPresented: $showWarning) {
             Button("Cancel", role: .cancel) {}
             Button("Confirm", role: .destructive) {
-                review = album.review
-                album.grade = rating
+                reviewText = review.text
+                rating = review.rating
                 try? modelContext.save()
                 dismiss()
             }
@@ -133,24 +131,25 @@ struct AlbumReviewView: View {
         }
         .background(
             LinearGradient(
-                gradient: Gradient(colors: [Color.backgroundColorDark, Color.background]), // Adjust colors here
+                gradient: Gradient(colors: [Color.backgroundColorDark, Color.background]),
                 startPoint: .top,
                 endPoint: .center
             )
             .ignoresSafeArea()
         )
         .onDisappear {
-            album.review = review
-            album.grade = rating
+            review.text = reviewText
+            review.rating = rating
             try? modelContext.save()
         }
         .onAppear {
-            review = album.review
-            rating = album.grade
+            reviewText = review.text
+            rating = review.rating
         }
     }
 
     private func toggleLike() {
-        album.isLiked.toggle()
+        review.isLiked.toggle()
     }
 }
+

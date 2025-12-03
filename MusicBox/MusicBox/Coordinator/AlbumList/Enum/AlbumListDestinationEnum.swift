@@ -8,6 +8,7 @@
 import Foundation
 
 public enum AlbumListDestinationEnum: Hashable {
+    case reviewDetail(AlbumReview)
     case albumDetail(Album)
 }
 

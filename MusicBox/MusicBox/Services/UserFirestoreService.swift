@@ -34,3 +34,10 @@ class UserFirestoreService {
         try await userDocument(userID: userID).updateData(data)
     }
 }
+
+extension UserFirestoreService {
+    func fetchUsername(for userId: String) async throws -> String {
+        let user = try await getUser(userID: userId)
+        return user.username ?? "Unknown User" // Make sure DBUser has a `username` property
+    }
+}

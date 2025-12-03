@@ -11,7 +11,7 @@ import SwiftData
 
 struct SocialReviewsView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query private var albums: [Album] // Automatically fetches from SwiftData
+    @Query private var reviews: [AlbumReview] // Automatically fetches from SwiftData
     @State private var starSize: CGFloat = 25
     @State private var starEditable: Bool = false
     @State private var sortOption: SortOption = .dateLogged // Default sorting by date
@@ -26,14 +26,14 @@ struct SocialReviewsView: View {
         var id: String { self.rawValue }
     }
 
-    var sortedAlbums: [Album] {
+    var sortedAlbums: [AlbumReview] {
         switch sortOption {
         case .artist:
-            return albums.sorted { $0.artist.localizedCompare($1.artist) == .orderedAscending }
+            return reviews.sorted { $0.album.artist.localizedCompare($1.album.artist) == .orderedAscending }
         case .album:
-            return albums.sorted { $0.name.localizedCompare($1.name) == .orderedAscending }
+            return reviews.sorted { $0.album.name.localizedCompare($1.album.name) == .orderedAscending }
         case .dateLogged:
-            return albums.sorted { $0.dateLogged ?? Date() > $1.dateLogged ?? Date() }
+            return reviews.sorted { $0.date ?? Date() > $1.date ?? Date() }
         }
     }
 
@@ -61,11 +61,11 @@ struct SocialReviewsView: View {
                 .padding(.horizontal)
 
                 List {
-                    ForEach(sortedAlbums) { album in
+                    ForEach(sortedAlbums) { review in
                         Button(action: {
-                            coordinator.navigate(to: .albumDetail(album))
+                            coordinator.navigate(to: .reviewDetail(review))
                         }) {
-                            AlbumComponentView(album: .constant(album))
+                            ReviewComponentView(review: review)
                         }
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
@@ -94,9 +94,9 @@ struct SocialReviewsView: View {
             }
         }
         .onAppear {
-            for album in albums {
-                if !album.isLogged {
-                    album.dateLogged = Date()
+            for review in reviews {
+                if !review.isLogged {
+                    review.date = Date()
                 }
             }
         }
@@ -105,15 +105,10 @@ struct SocialReviewsView: View {
     private func deleteAlbum(at offsets: IndexSet) {
         for index in offsets {
             let albumToDelete = sortedAlbums[index]
-            if let actualIndex = albums.firstIndex(where: { $0.id == albumToDelete.id }) {
-                modelContext.delete(albums[actualIndex])
+            if let actualIndex = reviews.firstIndex(where: { $0.id == albumToDelete.id }) {
+                modelContext.delete(reviews[actualIndex])
             }
         }
         try? modelContext.save()
     }
-}
-
-#Preview {
-    AlbumListView(coordinator: AlbumListCoordinator())
-        .modelContainer(for: Album.self, inMemory: true) // In-memory for preview
 }

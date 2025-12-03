@@ -11,38 +11,31 @@ import UIKit
 
 @Model
 public class Album {
-    public var id: UUID = UUID()
+    @Attribute(.unique) public var id: String      // Spotify or Discogs ID
     var name: String
     var artist: String
     var year: String?
-    var review: String
-    var isLiked: Bool
-    var grade: Double
     var imageData: Data?
-    var isLogged: Bool = false
-    var dateLogged: Date? = nil
-    var isSaved: Bool = false
-    @Relationship(deleteRule: .cascade) var songs: [Song] = []
 
-    init(name: String, artist: String, year: String, review: String, isLiked: Bool, grade: Double, image: UIImage? = nil, songs: [Song] = [], dateLogged: Date) {
+    @Relationship(deleteRule: .cascade)
+    var reviews: [AlbumReview] = []
+
+    @Relationship(deleteRule: .cascade)
+    var songs: [Song] = []
+
+    init(id: String, name: String, artist: String, year: String? = nil, image: UIImage? = nil) {
+        self.id = id
         self.name = name
         self.artist = artist
         self.year = year
-        self.review = review
-        self.isLiked = isLiked
-        self.grade = min(max(grade, 0), 5) // Ensure grade is between 0-5
         self.imageData = image?.jpegData(compressionQuality: 0.8)
-        self.songs = songs
-        self.dateLogged = dateLogged
     }
-
 
     var albumImage: UIImage? {
-        if let data = imageData {
-            return UIImage(data: data)
-        }
-        return nil
+        imageData.flatMap { UIImage(data: $0) }
     }
 }
+
+
 
 

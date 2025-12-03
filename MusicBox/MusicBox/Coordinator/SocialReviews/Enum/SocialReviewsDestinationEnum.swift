@@ -14,5 +14,5 @@
 import Foundation
 
 public enum SocialReviewsDestinationEnum: Hashable {
-    case albumDetail(Album)
+    case reviewDetail(AlbumReview)
 }

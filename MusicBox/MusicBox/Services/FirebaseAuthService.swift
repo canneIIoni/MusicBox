@@ -74,120 +74,130 @@ protocol EmailPasswordHandling {
 
 class FirebaseAuthService: Authenticating, ObservableObject {
     
+    // MARK: - UI Test Flag
+    // When set to true: the app ALWAYS starts authenticated
+    static var forceAuthenticatedForUITests = false
+
+    // MARK: - Stored Properties
     var email: String = ""
-    
     var password: String = ""
-    
     var confirmPassword: String = ""
-    
     var errorMessage: String = ""
-    
+
     @Published var authenticationState: UserAuthState = .unauthenticated
-    
     var onAuthStateChanged: ((UserAuthState) -> Void)?
-    
+
     var user: User?
-    
     private var authStateHandle: AuthStateDidChangeListenerHandle?
     
-    // Debug mode flag - when true, bypasses Firebase
+    // MARK: - Debug Mode (Firebase bypass)
     private var isDebugMode = false
     private var debugUserId = "debug-user-id"
     private var debugEmail = DebugConfig.hardcodedEmail
 
     
+    // MARK: - Init
+
     init() {
+
+        // 🚀 UI TEST MODE: bypass Firebase & start authenticated
+        if Self.forceAuthenticatedForUITests {
+            Task { @MainActor in
+                self.isDebugMode = true
+                self.debugUserId = "uitest-user-id"
+                self.debugEmail = "uitest@example.com"
+                self.authenticationState = .authenticated
+                self.onAuthStateChanged?(.authenticated)
+                print("🚀 UI Tests: automatically authenticated")
+            }
+            return
+        }
+
+        // Normal app launch
         registerAuthStateHandler()
     }
     
-    // Porque ele passa duas vezes aqui?
+    // MARK: - Firebase Listener
     func registerAuthStateHandler() {
         if authStateHandle == nil {
-            authStateHandle = Auth.auth().addStateDidChangeListener({ auth, user in
+            authStateHandle = Auth.auth().addStateDidChangeListener { auth, user in
                 self.user = user
                 self.authenticationState = user == nil ? .unauthenticated : .authenticated
                 self.onAuthStateChanged?(self.authenticationState)
-            })
+            }
         }
     }
-    
-    // MARK: - Debug Methods
-    
-    func setAuthenticatedForDebug(userId: String = "debug-user-id", email: String = DebugConfig.hardcodedEmail) {
-        // Bypass Firebase authentication - just set as authenticated for debug mode
-        // This doesn't actually authenticate with Firebase, just sets the state
+
+    // MARK: - Debug / UI Test Authentication
+    func setAuthenticatedForDebug(
+        userId: String = "debug-user-id",
+        email: String = DebugConfig.hardcodedEmail
+    ) {
         Task { @MainActor in
             self.isDebugMode = true
             self.debugUserId = userId
             self.debugEmail = email
             self.authenticationState = .authenticated
             self.onAuthStateChanged?(.authenticated)
-            print("✅ Debug mode: User authenticated (bypassing Firebase)")
+            print("✅ Debug mode: Authenticated without Firebase")
         }
     }
-    
+
+    // MARK: - Get Current User
     func getAuthenticatedUser() throws -> AuthDataResultModel {
-        // If in debug mode, return mock user data
+        
+        // Debug / UI test mode
         if isDebugMode && authenticationState == .authenticated {
             return AuthDataResultModel(
                 uid: debugUserId,
-                email: debugEmail,
-                photoUrl: nil,
-                isAnonymous: false
+                email: debugEmail
             )
         }
         
+        // Normal Firebase mode
         guard let user = Auth.auth().currentUser else {
             throw URLError(.badServerResponse)
         }
         
         return AuthDataResultModel(user: user)
     }
-    
-    // I not always want to retrieve the AuthDataResultModel
-    
-#warning("Save user with KeyChain")
+
+    // MARK: - Auth Methods
+
     @discardableResult
     func createUser(email: String, password: String) async throws -> AuthDataResultModel {
-            let authResult = try await Auth.auth().createUser(withEmail: email, password: password)
-            return AuthDataResultModel(user: authResult.user)
+        let result = try await Auth.auth().createUser(withEmail: email, password: password)
+        return AuthDataResultModel(user: result.user)
     }
-    
+
     func signInUser(email: String, password: String) async throws -> AuthDataResultModel {
-        let authDataResult = try await Auth.auth().signIn(withEmail: email, password: password)
-        return AuthDataResultModel(user: authDataResult.user)
+        let result = try await Auth.auth().signIn(withEmail: email, password: password)
+        return AuthDataResultModel(user: result.user)
     }
-    
+
     func signOut() throws {
-        // Check if we're in debug mode
         if isDebugMode {
-            // Debug mode - just set state to unauthenticated
             Task { @MainActor in
                 self.isDebugMode = false
                 self.authenticationState = .unauthenticated
                 self.onAuthStateChanged?(.unauthenticated)
-                print("✅ Debug user signed out")
+                print("🔶 Debug user signed out")
             }
             return
         }
         
-        // Normal sign out with Firebase
         try Auth.auth().signOut()
     }
-    
-#warning("Must have a alert before doing this action")
-#warning("Must delete the auth user and the db user")
 
     func deleteAccount() async {
         do {
             try await user?.delete()
-        }
-        catch {
+        } catch {
             errorMessage = error.localizedDescription
-
         }
     }
 }
+
 
 extension FirebaseAuthService: EmailPasswordHandling {
     

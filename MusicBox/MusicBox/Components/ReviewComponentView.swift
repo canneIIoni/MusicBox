@@ -2,38 +2,28 @@
 //  AlbumComponentView.swift
 //  MusicBox
 //
-//  Created by Luca on 03/12/25.
-//
-
-
-//
-//  AlbumComponentView.swift
-//  MusicBox
-//
 //  Created by Luca on 03/10/25.
 //
 
 
 import SwiftUI
 
-struct AlbumComponentView: View {
-    @Binding var album: Album
+struct ReviewComponentView: View {
+    var review: AlbumReview
     var remoteImageURL: String? = nil
     
     @State var imageSize: CGFloat = 65
     @State private var isTitleTwoLines: Bool = false
     @State private var starSize: CGFloat = 17
-    @State private var editable = false
     
     private let singleLineHeight: CGFloat = 24
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            
             HStack(alignment: .top, spacing: 12) {
                 
-                // Try loading local image first, fallback to remote
-                if let localImage = album.albumImage {
+                // Album image (local or remote)
+                if let localImage = review.album.albumImage {
                     Image(uiImage: localImage)
                         .resizable()
                         .frame(width: imageSize, height: imageSize)
@@ -61,8 +51,9 @@ struct AlbumComponentView: View {
                 }
                 
                 VStack(alignment: .leading, spacing: 4) {
+                    // Album title
                     GeometryReader { geometry in
-                        Text(album.name)
+                        Text(review.album.name)
                             .font(.system(size: 20, weight: .bold))
                             .multilineTextAlignment(.leading)
                             .fixedSize(horizontal: false, vertical: true)
@@ -80,16 +71,33 @@ struct AlbumComponentView: View {
                         isTitleTwoLines = newHeight > singleLineHeight
                     }
                     
-                    VStack(alignment: .leading) {
-                        Text(album.artist)
+                    // Artist & rating
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(review.album.artist)
                             .font(.subheadline)
                             .foregroundColor(.gray)
-                            .frame(height: 10)
                         
+                        HStack(spacing: 4) {
+                            RatingView(rating: .constant(review.rating), starSize: $starSize, editable: .constant(false))
+                            if review.isLiked {
+                                Image(systemName: "heart.fill")
+                                    .foregroundColor(.systemRed)
+                                    .scaledToFit()
+                                    .frame(width: 17, height: 17)
+                            }
+                        }
                     }
                 }
                 
                 Spacer()
+            }
+            
+            // Snippet of review text
+            if !review.text.isEmpty {
+                Text(review.text)
+                    .font(.system(size: 12))
+                    .foregroundColor(.gray)
+                    .lineLimit(2)
             }
         }
         .padding(.vertical, 8)
@@ -103,3 +111,13 @@ struct AlbumComponentView: View {
             .clipShape(RoundedRectangle(cornerRadius: 4))
     }
 }
+
+
+// MARK: - PreferenceKey for Title Height
+struct TitleHeightKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
+    }
+}
+
