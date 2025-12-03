@@ -11,6 +11,7 @@ struct AlbumTabView: View {
     
     @StateObject private var albumListCoordinator = AlbumListCoordinator()
     @StateObject private var albumSearchCoordinator = AlbumSearchCoordinator()
+    @StateObject private var socialReviewsCoordinator = SocialReviewsCoordinator()
     
     @ObservedObject var authenticationService: FirebaseAuthService
     private let userManager = UserFirestoreService()
@@ -36,13 +37,19 @@ struct AlbumTabView: View {
                 .tabItem {
                     Label("Search Discogs", systemImage: "magnifyingglass")
                 }
-            
+
+            SocialReviewsCoordinatorView(coordinator: socialReviewsCoordinator)
+                .tabItem {
+                    Label("Reviews", systemImage: "text.bubble.fill")
+                }
+
             MainProfileView(viewModel: profileViewModel)
                 .tabItem {
                     Label("Profile", systemImage: "person.fill")
                 }
         }
     }
+
 }
 
 #Preview {

@@ -17,13 +17,13 @@ struct RegisterView: View {
             VStack(spacing: 24) {
                 // Logo and Title
                 VStack(spacing: 16) {
-                    Image(.musicboxLogo)
+                    Spacer().frame(height: 20)
+
+                    Image("TextLogo")
                         .resizable()
-                        .frame(width: 80, height: 80)
-                    
-                    Text("MusicBox")
-                        .font(.system(size: 40, weight: .bold))
-                        .foregroundStyle(.systemRed)
+                        .scaledToFit()
+                        .frame(height: 100)
+                        .padding(.horizontal, 20)
                     
                     Text("Create your account")
                         .font(.system(size: 20, weight: .medium))
