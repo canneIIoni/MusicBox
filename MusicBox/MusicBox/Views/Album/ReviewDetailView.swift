@@ -219,9 +219,18 @@ struct SongReviewsView: View {
             Text("Songs").font(.headline)
 
             ForEach(draft.songReviews) { songReview in
-                NavigationLink {
-                    SongDetailView(songReview: songReview)
-                } label: {
+                
+                if isCurrentUserOwner {
+                    NavigationLink {
+                        SongDetailView(songReview: songReview)
+                    } label: {
+                        SongComponentView(
+                            songReview: songReview,
+                            smallStarSize: 17,
+                            editable: isCurrentUserOwner
+                        )
+                    }
+                } else {
                     SongComponentView(
                         songReview: songReview,
                         smallStarSize: 17,
