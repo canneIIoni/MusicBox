@@ -15,46 +15,68 @@ public class AlbumListCoordinator: ObservableObject {
     @Published public var sheet: AlbumListSheetEnum? = nil
     @Published public var fullscreenCover: AlbumListFullscreenCoverEnum? = nil
     
+    // Add stored dependencies
+    private let authenticationService: Authenticating
+    private let userManager: UserFirestoreService
+    
+    // Add initializer to accept dependencies
+    init(authenticationService: Authenticating, userManager: UserFirestoreService) {
+        self.authenticationService = authenticationService
+        self.userManager = userManager
+    }
+
     public func showInitialView() -> AnyView {
         buildAlbumList()
     }
-    
+
     public func navigate(to screen: AlbumListDestinationEnum) {
         withAnimation {
             path.append(screen)
         }
     }
-    
+
     func goBack() {
-        if !path.isEmpty {
-            path.removeLast()
-        }
+        if !path.isEmpty { path.removeLast() }
     }
-    
+
     func backToRoot() {
-        withAnimation {
-            path.removeAll()
-        }
+        withAnimation { path.removeAll() }
     }
-    
+
     public func dismissPresentation() {
         self.sheet = nil
         self.fullscreenCover = nil
     }
-    
+
     func buildAlbumList() -> AnyView {
-        return AnyView(AlbumListView(coordinator: self))
+        AnyView(ReviewListView(coordinator: self))
     }
-    
+
+    // Update to use stored dependencies
     func buildAlbumDetail(album: Album) -> AnyView {
-        return AnyView(AlbumDetailView(album: album, coordinator: self))
+        let viewModel = AlbumDetailViewModel(
+            authenticationService: authenticationService,
+            userManager: userManager
+        )
+        return AnyView(AlbumDetailView(
+            album: album,
+            viewModel: viewModel,
+            coordinator: self
+        ))
     }
-    
-    public func view(for state: AlbumListDestinationEnum) -> AnyView {
+
+    func buildReviewDetail(albumReview: AlbumReview) -> AnyView {
+        AnyView(ReviewDetailView(review: albumReview))
+    }
+
+    // Update to use stored dependencies
+    @MainActor
+    func view(for state: AlbumListDestinationEnum) -> AnyView {
         switch state {
         case .albumDetail(let album):
             return buildAlbumDetail(album: album)
+        case .reviewDetail(let albumReview):
+            return buildReviewDetail(albumReview: albumReview)
         }
     }
 }
-

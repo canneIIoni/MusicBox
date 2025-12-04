@@ -5,7 +5,6 @@
 //  Created by Luca on 03/10/25.
 //
 
-
 import SwiftUI
 
 struct AlbumComponentView: View {
@@ -15,13 +14,11 @@ struct AlbumComponentView: View {
     @State var imageSize: CGFloat = 65
     @State private var isTitleTwoLines: Bool = false
     @State private var starSize: CGFloat = 17
-    @State private var editable = false
     
     private let singleLineHeight: CGFloat = 24
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            
             HStack(alignment: .top, spacing: 12) {
                 
                 // Try loading local image first, fallback to remote
@@ -35,7 +32,8 @@ struct AlbumComponentView: View {
                     AsyncImage(url: url) { phase in
                         switch phase {
                         case .empty:
-                            ProgressView().frame(width: imageSize, height: imageSize)
+                            ProgressView()
+                                .frame(width: imageSize, height: imageSize)
                         case .success(let image):
                             image
                                 .resizable()
@@ -53,6 +51,7 @@ struct AlbumComponentView: View {
                 }
                 
                 VStack(alignment: .leading, spacing: 4) {
+                    // Album title
                     GeometryReader { geometry in
                         Text(album.name)
                             .font(.system(size: 20, weight: .bold))
@@ -72,29 +71,17 @@ struct AlbumComponentView: View {
                         isTitleTwoLines = newHeight > singleLineHeight
                     }
                     
-                    VStack(alignment: .leading) {
+                    // Artist info (similar to ReviewComponentView but without extra elements)
+                    VStack(alignment: .leading, spacing: 2) {
                         Text(album.artist)
                             .font(.subheadline)
                             .foregroundColor(.gray)
-                            .frame(height: 10)
                         
-                        VStack{
-                            HStack{
-                                if album.isSaved {
-//                                    RatingView(
-//                                        rating: Binding(get: { album.grade }, set: { album.grade = $0 }),
-//                                        starSize: $starSize,
-//                                        editable: .constant(false)
-//                                    ).allowsHitTesting(false)
-                                }
-                                
-                                if album.isLiked {
-                                    Image(systemName: "heart.fill")
-//                                        .foregroundColor(.systemRed)
-                                        .scaledToFit()
-                                        .frame(width: 17, height: 17)
-                                }
-                            }
+                        // Optional: Add album year if available
+                        if let year = album.year, !year.isEmpty {
+                            Text("• \(year)")
+                                .font(.caption)
+                                .foregroundColor(.gray)
                         }
                     }
                 }
@@ -102,13 +89,14 @@ struct AlbumComponentView: View {
                 Spacer()
             }
             
-            if !album.review.isEmpty {
-                Text(album.review)
-                    .font(.system(size: 12))
-                    .foregroundColor(.gray)
-                    .lineLimit(2)
-            }
-            
+            // Optional: Add album description or other info if needed
+            // Similar to the review text section in ReviewComponentView
+            // if let description = album.description, !description.isEmpty {
+            //     Text(description)
+            //         .font(.system(size: 12))
+            //         .foregroundColor(.gray)
+            //         .lineLimit(2)
+            // }
         }
         .padding(.vertical, 8)
     }
@@ -117,26 +105,12 @@ struct AlbumComponentView: View {
         Rectangle()
             .fill(Color.gray.opacity(0.3))
             .frame(width: imageSize, height: imageSize)
-            .overlay(Text("No Image").foregroundColor(.gray))
+            .overlay(
+                Text("No Image")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+            )
             .clipShape(RoundedRectangle(cornerRadius: 4))
     }
 }
 
-// MARK: - PreferenceKey for Title Height
-struct TitleHeightKey: PreferenceKey {
-    static var defaultValue: CGFloat = 0
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        value = nextValue()
-    }
-}
-
-#Preview {
-    struct Preview: View {
-        @State var album = Album(name: "Reading, Writing and Arithmetic and poop", artist: "The Sundays", year: "1985", review: "berry gud", isLiked: true, grade: 4.5, dateLogged: Date())
-        var body: some View {
-            AlbumComponentView(album: $album)
-        }
-    }
-    
-    return Preview()
-}

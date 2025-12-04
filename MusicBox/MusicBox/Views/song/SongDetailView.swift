@@ -1,155 +1,134 @@
-//
-//  SongDetailView.swift
-//  Statik
-//
-//  Created by Luca on 28/02/25.
-//
-
-
 import SwiftUI
 
 struct SongDetailView: View {
     @Environment(\.dismiss) private var dismiss
-    @State var song: Song
-    @Binding var album: Album
-    @State private var starSize: CGFloat = 37
-    @State private var starEditable: Bool = true
-    @State private var review: String = ""
-    @State private var rating: Double = 0
-    @State private var like: Bool = false
+    @ObservedObject var songReview: SongReviewDraft
+
+    @State private var localText: String = ""
+    @State private var localRating: Double = 0
+    @State private var localLiked: Bool = false
     @State private var showWarning = false
 
-    var body: some View {
-        VStack {
-            HStack {
-                if let image = album.albumImage {
-                    Image(uiImage: image)
-                        .resizable()
-                        .frame(width: 65, height: 65)
-                        .scaledToFill()
-                } else {
-                    Rectangle()
-                        .fill(Color.gray.opacity(0.3))
-                        .frame(width: 65, height: 65)
-                        .overlay(Text("No Image").foregroundColor(.gray))
-                }
-                VStack(alignment: .leading) {
-                    Text("\(album.artist) · \(album.year ?? "Unknown Year")")
-                        .font(.caption)
-                        .foregroundStyle(.secondaryText)
-                    Text(song.title)
-                        .font(.title2)
-                        .bold()
-                    Text(album.name)
-                        .font(.system(size: 16))
-                    Spacer()
-                }.frame(height: 65)
-                
-                Spacer()
-            }
-            .padding(.bottom)
-            
-            Divider().padding(.bottom)
+    @State private var starSize: CGFloat = 37
+    @State private var starEditable: Bool = true
 
+    var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
+
+            // TITLE (Centered like the old version)
+            Text(songReview.song.title)
+                .font(.title.bold())
+                .frame(maxWidth: .infinity, alignment: .center)
+
+            Divider()
+
+            // RATING + LIKE SECTION
             HStack {
                 VStack(alignment: .leading) {
                     Text("Rating")
                         .font(.system(size: 16, weight: .bold))
-                    RatingView(rating: $song.grade, starSize: $starSize, editable: $starEditable)
-                }.padding(.bottom)
-                
+
+                    RatingView( rating: $localRating, starSize: .constant(37), editable: true )
+                }
+
                 Spacer()
-                
-                VStack(alignment: .center) {
-                    if song.isLiked {
-                        Text("Liked").font(.system(size: 16, weight: .bold))
-                    } else {
-                        Text("Like").font(.system(size: 16, weight: .bold))
-                    }
-                    Button(action: toggleLike) {
-                        Image(systemName: song.isLiked ? "heart.circle.fill" : "heart.circle")
-                            .foregroundColor(.systemRed)
+
+                VStack {
+                    Text(localLiked ? "Liked" : "Like")
+                        .font(.system(size: 16, weight: .bold))
+
+                    Button {
+                        localLiked.toggle()
+                    } label: {
+                        Image(systemName: localLiked ? "heart.circle.fill" : "heart.circle")
                             .font(.system(size: 37, weight: .bold))
-                    }.offset(y: 4)
-                }.padding(.bottom)
-                    
-            }
-            
-            Divider().padding(.bottom)
-            
-            HStack {
-                Text("Review")
-                    .font(.system(size: 16, weight: .bold))
-                Spacer()
+                            .foregroundColor(.red)
+                    }
+                    .offset(y: 4)
+                }
             }
 
-            TextField("", text: $review, prompt: Text("Write a review..."), axis: .vertical)
-                .padding()
-                .background(RoundedRectangle(cornerRadius: 10).fill(Color.backgroundColorDark))
-                .lineLimit(6, reservesSpace: true)
-                
+            Divider()
+
+            // REVIEW
+            VStack(alignment: .leading) {
+                Text("Review")
+                    .font(.system(size: 16, weight: .bold))
+
+                TextField("", text: $localText, prompt: Text("Write a review..."), axis: .vertical)
+                    .padding()
+                    .background(RoundedRectangle(cornerRadius: 10).fill(Color(.systemGray6)))
+                    .lineLimit(6, reservesSpace: true)
+            }
 
             Spacer()
         }
         .padding()
         .navigationBarBackButtonHidden(true)
+
+        // TOOLBAR
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
-                Button {
-                    if song.review != review || song.grade != rating {
+                Button("Cancel") {
+                    if hasUnsavedChanges {
                         showWarning = true
                     } else {
-                        song.grade = rating
                         dismiss()
                     }
-                    
-                } label: {
-                    Text("Cancel")
-                        .font(.system(size: 18, weight: .bold))
-                        .foregroundStyle(.secondaryText)
                 }
+                .font(.system(size: 18, weight: .bold))
+                .foregroundColor(.secondary)
             }
+
             ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    song.review = review
+                Button("Save") {
+                    applyChanges()
                     dismiss()
-                } label: {
-                    Text("Save")
-                        .font(.system(size: 18, weight: .bold))
-                        .foregroundStyle(.systemRed)
                 }
+                .font(.system(size: 18, weight: .bold))
+                .foregroundColor(.red)
             }
-            
-        }.alert("Are you sure?", isPresented: $showWarning) {
+        }
+
+        // ALERT
+        .alert("Are you sure?", isPresented: $showWarning) {
             Button("Cancel", role: .cancel) {}
             Button("Confirm", role: .destructive) {
-                song.grade = rating
                 dismiss()
             }
         } message: {
             Text("Unsaved changes might be lost.")
         }
+
+        // OLD STYLE BACKGROUND
         .background(
             LinearGradient(
-                gradient: Gradient(colors: [Color.backgroundColorDark, Color.background]), // Adjust colors here
+                gradient: Gradient(colors: [Color.backgroundColorDark, Color.background]),
                 startPoint: .top,
                 endPoint: .center
             )
             .ignoresSafeArea()
         )
-        .onDisappear {
-            if let index = album.songs.firstIndex(where: { $0.id == song.id }) {
-                album.songs[index] = song
-            }
-            
-        }
+
+        // LOAD INITIAL VALUES
         .onAppear {
-            review = song.review.isEmpty ? "" : song.review
-            rating = song.grade
+            localText = songReview.reviewText
+            localRating = songReview.grade
+            localLiked = songReview.isLiked
         }
     }
 
-    private func toggleLike() {
-        song.isLiked.toggle()
+    // TRACK UNSAVED CHANGES
+    private var hasUnsavedChanges: Bool {
+        localText != songReview.reviewText ||
+        localRating != songReview.grade ||
+        localLiked != songReview.isLiked
+    }
+
+    // APPLY CHANGES
+    private func applyChanges() {
+        songReview.reviewText = localText
+        songReview.grade = localRating
+        songReview.isLiked = localLiked
     }
 }

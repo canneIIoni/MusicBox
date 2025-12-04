@@ -29,15 +29,3 @@ struct ImageComponent: View {
         }
     }
 }
-
-#Preview {
-    struct Preview: View {
-        @State var album = Album(name: "Meat is Murder", artist: "The Smiths", year: "1985", review: "berry gud", isLiked: true, grade: 4.5, dateLogged: Date())
-        @State var imageSize: CGFloat = 100
-        var body: some View {
-            ImageComponent(album: $album, imageSize: $imageSize)
-        }
-    }
-
-    return Preview()
-}

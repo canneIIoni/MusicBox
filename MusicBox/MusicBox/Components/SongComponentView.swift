@@ -8,99 +8,50 @@
 import SwiftUI
 
 struct SongComponentView: View {
+    @ObservedObject var songReview: SongReviewDraft
+    var smallStarSize: CGFloat
+    var editable: Bool = false
     
-    @Binding var song: Song
-    @Binding var artist: String
-    @Binding var smallStarSize: CGFloat
     var body: some View {
-        HStack {
-            VStack(alignment: .leading) {
-                if song.title.count < 20 {
-                    HStack(alignment: .bottom) {
-                        Text("\(song.title) ")
-                            .font(.system(size: 20))
-                            .multilineTextAlignment(.leading)
-                        RatingView(
-                            rating: Binding(
-                                get: { song.grade },
-                                set: { song.grade = $0 }
-                            ),
-                            starSize: $smallStarSize,
-                            editable: .constant(false)
-                        ).allowsHitTesting(false)
-                            .padding(.bottom, 3.2)
-                    }
-                    Text("\(artist)")
+        HStack(alignment: .top, spacing: 12) {
+            VStack(alignment: .leading, spacing: 6) {
+                
+                Text("\(songReview.song.trackNumber). \(songReview.song.title)")
+                    .font(.system(size: 20, weight: .semibold))
+                    .lineLimit(2)
+                
+                HStack(spacing: 6) {
+                    Text(songReview.song.album.artist)
                         .font(.system(size: 14))
                         .foregroundColor(.gray)
-                        .multilineTextAlignment(.leading)
                     
-                } else {
-                    if song.title.count < 36 {
-                        Text("\(song.title) ")
-                            .font(.system(size: 20))
-                            .multilineTextAlignment(.leading)
-                        
-                        HStack {
-                            Text("\(artist)")
-                                .font(.system(size: 14))
-                                .foregroundColor(.gray)
-                                .multilineTextAlignment(.leading)
-                        }
-                        
-                        Text("\(song.title) ")
-                            .font(.system(size: 20))
-                            .multilineTextAlignment(.leading)
-                            .padding(.bottom, 1)
-                        
-                        HStack {
-                            Text("\(artist)")
-                                .font(.system(size: 14))
-                                .foregroundColor(.gray)
-                                .multilineTextAlignment(.leading)
-                            
-                            RatingView(
-                                rating: Binding(
-                                    get: { song.grade },
-                                    set: { song.grade = $0 }
-                                ),
-                                starSize: $smallStarSize,
-                                editable: .constant(false)
-                            ).allowsHitTesting(false)
-                                .padding(.bottom, 3.2)
-                        }
-                        
-                    }
-                    
-                    if song.title.count >= 20 && song.title.count < 36 {
-                        
-                        if !song.review.isEmpty {
-                            Text("\(song.review)")
-                                .font(.system(size: 14))
-                                .foregroundColor(.secondaryText)
-                                .multilineTextAlignment(.leading)
-                        }
-                    } else {
-                        
-                        if !song.review.isEmpty {
-                            Text("\(song.review)")
-                                .font(.system(size: 14))
-                                .foregroundColor(.secondaryText)
-                                .multilineTextAlignment(.leading)
-                            
-                        }
-                    }
+                    RatingView(
+                        rating: $songReview.grade,
+                        starSize: .constant(smallStarSize),
+                        editable: editable
+                    )
+                }
+                
+                if !songReview.reviewText.isEmpty {
+                    Text(songReview.reviewText)
+                        .font(.system(size: 14))
+                        .foregroundColor(.secondary)
                 }
             }
+            
             Spacer()
-            if song.isLiked {
+            
+            if songReview.isLiked {
                 Image(systemName: "heart.circle.fill")
-                    .foregroundColor(.systemRed)
+                    .foregroundColor(.red)
+                    .font(.system(size: 20))
             }
+            
             Image(systemName: "chevron.right")
                 .font(.system(size: 13, weight: .bold))
-                .foregroundColor(.secondary).opacity(0.5)
+                .foregroundColor(.gray.opacity(0.5))
         }
+        .padding(.vertical, 8)
     }
 }
 

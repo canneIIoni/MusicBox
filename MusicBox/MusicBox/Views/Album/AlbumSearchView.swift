@@ -8,7 +8,6 @@
 import SwiftUI
 import Combine
 
-
 struct AlbumSearchView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
@@ -25,20 +24,26 @@ struct AlbumSearchView: View {
                     .font(.system(size: 25, weight: .bold))
                     .padding(.vertical)
                     .padding(.leading)
+                    .accessibilityIdentifier("albumSearchTitle")
                 Spacer()
             }
+
+            // 🔴 Add search field identifier
             HStack {
                 TextField("Search Discogs albums...", text: $viewModel.searchText)
                     .padding(10)
                     .background(RoundedRectangle(cornerRadius: 10).fill(Color.backgroundColorDark))
+                    .accessibilityIdentifier("albumSearchField")
             }
             .padding(.horizontal)
 
             if viewModel.isSearching {
                 ProgressView()
                     .padding()
+                    .accessibilityIdentifier("albumSearchLoading")
             }
 
+            // 🔴 Add identifier to List
             List {
                 ForEach(viewModel.searchResults) { result in
                     VStack(alignment: .leading) {
@@ -46,6 +51,8 @@ struct AlbumSearchView: View {
                             album: .constant(dummyAlbum(from: result)),
                             remoteImageURL: result.thumb ?? result.cover_image
                         )
+                        // 🔴 Add row identifier for UI tests
+                        .accessibilityIdentifier("albumRow_\(result.id)")
                         .onTapGesture {
                             fetchDiscogsAlbum(id: result.id)
                         }
@@ -54,6 +61,7 @@ struct AlbumSearchView: View {
                     .listRowBackground(Color.clear)
                 }
             }
+            .accessibilityIdentifier("albumSearchResultsList")
             .scrollContentBackground(.hidden)
             .listStyle(.plain)
         }
@@ -63,9 +71,10 @@ struct AlbumSearchView: View {
                     Image(.musicboxLogo)
                         .resizable()
                         .frame(width: 25, height: 25)
-                    Text("Statik")
+                    Text("MusicBox")
                         .font(.system(size: 25, weight: .bold))
                         .foregroundStyle(.systemRed)
+                        .accessibilityIdentifier("albumSearchToolbarTitle")
                 }
             }
         }
@@ -81,15 +90,11 @@ struct AlbumSearchView: View {
 
     private func dummyAlbum(from result: DiscogsSearchResult) -> Album {
         Album(
+            id: " ",
             name: result.name,
             artist: result.artistName,
             year: result.year ?? "Unknown Year",
-            review: "",
-            isLiked: false,
-            grade: 0.0,
-            image: nil,
-            songs: [],
-            dateLogged: Date()
+            image: nil
         )
     }
 
@@ -111,21 +116,25 @@ struct AlbumSearchView: View {
                     }
                 }
 
-                let songs = master.tracklist.enumerated().map { index, track in
-                    Song(title: track.title, isLiked: false, grade: 0.0, review: "", trackNumber: index + 1)
-                }
-
                 let album = Album(
+                    id: UUID().uuidString, // or use Discogs master ID
                     name: master.title,
                     artist: master.artists.first?.name ?? "Unknown Artist",
                     year: "\(master.year)",
-                    review: "",
-                    isLiked: false,
-                    grade: 0.0,
-                    image: albumImage,
-                    songs: songs,
-                    dateLogged: Date()
+                    image: albumImage
                 )
+                
+                let songs = master.tracklist.enumerated().map { index, track in
+                    Song(
+                        id: UUID().uuidString, // generate a unique ID for this track
+                        title: track.title,
+                        trackNumber: index + 1,
+                        duration: nil,         // optionally parse track.duration
+                        album: album           // link to parent Album
+                    )
+                }
+
+                album.songs = songs
 
                 await MainActor.run {
                     coordinator.navigate(to: .albumDetail(album))
@@ -140,11 +149,5 @@ struct AlbumSearchView: View {
             }
         }
     }
-
-
-}
-
-#Preview {
-    AlbumSearchView(coordinator: AlbumSearchCoordinator())
 }
 

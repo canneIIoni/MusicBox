@@ -6,6 +6,12 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		D038E0EB2EB534620030CD46 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = D038E0EA2EB534620030CD46 /* FirebaseAnalytics */; };
+		D038E0ED2EB534620030CD46 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = D038E0EC2EB534620030CD46 /* FirebaseAuth */; };
+		D08D1F182EB53DE500B7258A /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = D08D1F172EB53DE500B7258A /* FirebaseFirestore */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		E0AFB1292E7EBF6300DB66CB /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -52,6 +58,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D038E0EB2EB534620030CD46 /* FirebaseAnalytics in Frameworks */,
+				D038E0ED2EB534620030CD46 /* FirebaseAuth in Frameworks */,
+				D08D1F182EB53DE500B7258A /* FirebaseFirestore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -72,12 +81,20 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		D08D1F162EB53DE500B7258A /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		E0AFB1122E7EBF6100DB66CB = {
 			isa = PBXGroup;
 			children = (
 				E0AFB11D2E7EBF6100DB66CB /* MusicBox */,
 				E0AFB12B2E7EBF6300DB66CB /* MusicBoxTests */,
 				E0AFB1352E7EBF6300DB66CB /* MusicBoxUITests */,
+				D08D1F162EB53DE500B7258A /* Frameworks */,
 				E0AFB11C2E7EBF6100DB66CB /* Products */,
 			);
 			sourceTree = "<group>";
@@ -112,6 +129,9 @@
 			);
 			name = MusicBox;
 			packageProductDependencies = (
+				D038E0EA2EB534620030CD46 /* FirebaseAnalytics */,
+				D038E0EC2EB534620030CD46 /* FirebaseAuth */,
+				D08D1F172EB53DE500B7258A /* FirebaseFirestore */,
 			);
 			productName = MusicBox;
 			productReference = E0AFB11B2E7EBF6100DB66CB /* MusicBox.app */;
@@ -195,6 +215,9 @@
 			);
 			mainGroup = E0AFB1122E7EBF6100DB66CB;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				D038E0E92EB534620030CD46 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = E0AFB11C2E7EBF6100DB66CB /* Products */;
 			projectDirPath = "";
@@ -451,7 +474,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = CXcode.MusicBoxTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -469,7 +492,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = CXcode.MusicBoxTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -486,6 +509,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = CXcode.MusicBoxUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -502,6 +526,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = CXcode.MusicBoxUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -552,6 +577,35 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		D038E0E92EB534620030CD46 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.5.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		D038E0EA2EB534620030CD46 /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D038E0E92EB534620030CD46 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
+		};
+		D038E0EC2EB534620030CD46 /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D038E0E92EB534620030CD46 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		D08D1F172EB53DE500B7258A /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D038E0E92EB534620030CD46 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = E0AFB1132E7EBF6100DB66CB /* Project object */;
 }

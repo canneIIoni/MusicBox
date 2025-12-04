@@ -16,6 +16,7 @@ public struct AlbumListCoordinatorView: View {
         self.coordinator = coordinator
     }
     
+    
     public var body: some View {
         NavigationStack(path: $coordinator.path) {
             coordinator.showInitialView()
