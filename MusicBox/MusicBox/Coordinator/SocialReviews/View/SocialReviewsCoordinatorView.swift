@@ -14,7 +14,6 @@
 import SwiftUI
 
 public struct SocialReviewsCoordinatorView: View {
-
     @ObservedObject var coordinator: SocialReviewsCoordinator
 
     public init(coordinator: SocialReviewsCoordinator) {

@@ -67,47 +67,44 @@ struct MusicBoxApp: App {
 
 struct RootView: View {
     @ObservedObject var authenticationService: FirebaseAuthService
-    private let userManager = UserFirestoreService()
-    
-    @State private var currentUsername: String? = nil
-    @State private var isLoadingUser: Bool = true
-    
+    @StateObject private var profileVM: MainProfileViewModel
+
+    init(authenticationService: FirebaseAuthService) {
+        self.authenticationService = authenticationService
+        _profileVM = StateObject(wrappedValue: MainProfileViewModel(
+            authenticationService: authenticationService,
+            userManager: UserFirestoreService()
+        ))
+    }
+
     var body: some View {
         Group {
-            if authenticationService.authenticationState == .authenticated {
-                if let userId = Auth.auth().currentUser?.uid, let username = currentUsername {
+            switch authenticationService.authenticationState {
+            case .authenticated:
+                if let user = profileVM.user {
+                    // Pass the full user object to your tab view
                     AlbumTabView(authenticationService: authenticationService,
-                                 userId: userId,
-                                 username: username)
-                } else if isLoadingUser {
-                    ProgressView("Loading user info...")
-                        .onAppear {
-                            loadUserInfo()
-                        }
+                                 userId: user.userId,
+                                 username: user.username ?? "Unknown")
                 } else {
-                    Text("Failed to load user info")
-                        .foregroundColor(.red)
+                    ProgressView("Loading user info...")
+                        .task {
+                            await loadUser()
+                        }
                 }
-            } else {
+
+            case .unauthenticated:
                 LoginViewWrapper(authenticationService: authenticationService)
             }
         }
     }
-    
-    private func loadUserInfo() {
-        guard let userId = Auth.auth().currentUser?.uid else {
-            isLoadingUser = false
-            return
-        }
-        
-        Task {
-            do {
-                currentUsername = try await userManager.fetchUsername(for: userId)
-            } catch {
-                print("❌ Failed to fetch username: \(error)")
-                currentUsername = nil
-            }
-            isLoadingUser = false
+
+    // MARK: - Async user loading
+    private func loadUser() async {
+        do {
+            try await profileVM.loadCurrentUser()
+        } catch {
+            print("❌ Failed to load user: \(error)")
         }
     }
 }

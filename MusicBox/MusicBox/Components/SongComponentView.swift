@@ -9,32 +9,31 @@ import SwiftUI
 
 struct SongComponentView: View {
     @Binding var songReview: SongReview
-    @Binding var artist: String
     @Binding var smallStarSize: CGFloat
-
+    var editable: Bool = false
+    
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
-                Text($songReview.wrappedValue.title)
+                Text("\(songReview.trackNumber). \(songReview.title)")
                     .font(.system(size: 20))
                     .multilineTextAlignment(.leading)
                     .lineLimit(2)
 
                 HStack(spacing: 4) {
-                    Text($artist.wrappedValue)
+                    Text(songReview.artist)
                         .font(.system(size: 14))
                         .foregroundColor(.gray)
 
                     RatingView(
-                        rating: $songReview.grade, // keep binding here if needed
+                        rating: $songReview.grade,
                         starSize: $smallStarSize,
-                        editable: .constant(false)
+                        editable: .constant(editable)
                     )
-                    .allowsHitTesting(false)
                 }
 
-                if !$songReview.wrappedValue.reviewText.isEmpty {
-                    Text($songReview.wrappedValue.reviewText)
+                if !songReview.reviewText.isEmpty {
+                    Text(songReview.reviewText)
                         .font(.system(size: 14))
                         .foregroundColor(.secondaryText)
                         .multilineTextAlignment(.leading)
@@ -43,7 +42,7 @@ struct SongComponentView: View {
 
             Spacer()
 
-            if $songReview.wrappedValue.isLiked {
+            if songReview.isLiked {
                 Image(systemName: "heart.circle.fill")
                     .foregroundColor(.systemRed)
             }

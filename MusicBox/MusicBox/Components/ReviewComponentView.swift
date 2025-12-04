@@ -79,13 +79,25 @@ struct ReviewComponentView: View {
                         
                         HStack(spacing: 4) {
                             RatingView(rating: .constant(review.rating), starSize: $starSize, editable: .constant(false))
+                            
+                            if let username = review.username {
+                                Text(username)
+                                    .font(.subheadline)
+                                    .foregroundColor(.gray)
+                            } else {
+                                Text("Unknown")
+                                    .font(.subheadline)
+                                    .foregroundColor(.gray)
+                            }
+
                             if review.isLiked {
                                 Image(systemName: "heart.fill")
-                                    .foregroundColor(.systemRed)
+                                    .foregroundColor(.red)
                                     .scaledToFit()
                                     .frame(width: 17, height: 17)
                             }
                         }
+
                     }
                 }
                 

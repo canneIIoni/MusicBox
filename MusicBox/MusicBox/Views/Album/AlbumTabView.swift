@@ -9,12 +9,11 @@ import SwiftUI
 
 struct AlbumTabView: View {
     
-    @StateObject private var albumListCoordinator = AlbumListCoordinator()
+    @StateObject private var albumListCoordinator: AlbumListCoordinator
     @StateObject private var albumSearchCoordinator: AlbumSearchCoordinator
     @StateObject private var socialReviewsCoordinator: SocialReviewsCoordinator
     
     @ObservedObject var authenticationService: FirebaseAuthService
-    private let userManager = UserFirestoreService()
     @StateObject private var profileViewModel: MainProfileViewModel
     
     // MARK: - Selected tab for UI Tests
@@ -24,11 +23,30 @@ struct AlbumTabView: View {
     init(authenticationService: FirebaseAuthService, userId: String, username: String?) {
         self.authenticationService = authenticationService
         
-        // Initialize coordinators with user info
-        self._albumSearchCoordinator = StateObject(wrappedValue: AlbumSearchCoordinator(userId: userId, username: username))
-        self._socialReviewsCoordinator = StateObject(wrappedValue: SocialReviewsCoordinator(userId: userId, username: username))
-        
+        // Create UserFirestoreService instance for coordinators
         let userManager = UserFirestoreService()
+        
+        // Initialize all coordinators with user info
+        self._albumListCoordinator = StateObject(
+            wrappedValue: AlbumListCoordinator(
+                authenticationService: authenticationService,
+                userManager: userManager
+            )
+        )
+        self._albumSearchCoordinator = StateObject(
+            wrappedValue: AlbumSearchCoordinator(
+                authenticationService: authenticationService,
+                userManager: userManager
+            )
+        )
+        self._socialReviewsCoordinator = StateObject(
+            wrappedValue: SocialReviewsCoordinator(
+                authenticationService: authenticationService,
+                userManager: userManager
+            )
+        )
+        
+        // Use the same userManager for profileViewModel
         self._profileViewModel = StateObject(wrappedValue: MainProfileViewModel(
             authenticationService: authenticationService,
             userManager: userManager
@@ -61,4 +79,3 @@ struct AlbumTabView: View {
         }
     }
 }
-

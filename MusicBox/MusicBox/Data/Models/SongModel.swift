@@ -17,6 +17,10 @@ class Song {
 
     @Relationship(inverse: \Album.songs)
     var album: Album
+    
+    // Relationship to SongReview
+    @Relationship(deleteRule: .cascade)
+    var songReviews: [SongReview] = []
 
     init(id: String, title: String, trackNumber: Int, duration: Int? = nil, album: Album) {
         self.id = id
@@ -26,4 +30,3 @@ class Song {
         self.album = album
     }
 }
-

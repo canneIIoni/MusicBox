@@ -11,18 +11,35 @@ import Foundation
 @Model
 class SongReview {
     var id: UUID = UUID()
-    var songID: String        // The Spotify/Discogs track ID
-    var title: String
-    var trackNumber: Int
     var grade: Double         // 0–5
     var reviewText: String
     var isLiked = false
     
-    init(songID: String, title: String, trackNumber: Int, grade: Double, reviewText: String) {
-        self.songID = songID
-        self.title = title
-        self.trackNumber = trackNumber
+    // Relationship to the actual Song
+    @Relationship(inverse: \Song.songReviews)
+    var song: Song
+    
+    // Computed properties for convenience
+    var title: String {
+        song.title
+    }
+    
+    var trackNumber: Int {
+        song.trackNumber
+    }
+    
+    var duration: Int? {
+        song.duration
+    }
+    
+    var artist: String {
+        song.album.artist
+    }
+    
+    init(song: Song, grade: Double = 0.0, reviewText: String = "", isLiked: Bool = false) {
+        self.song = song
         self.grade = min(max(grade, 0), 5)
         self.reviewText = reviewText
+        self.isLiked = isLiked
     }
 }

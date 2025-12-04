@@ -23,13 +23,13 @@ final class LoginUITests: XCTestCase {
         XCTAssertTrue(emailField.waitForExistence(timeout: 5))
 
         emailField.tap()
-        emailField.typeText("teste@teste.com")
+        emailField.typeText("luca@gmail.com")
 
         let passwordField = app.secureTextFields["loginPasswordField"]
         XCTAssertTrue(passwordField.waitForExistence(timeout: 5))
 
         passwordField.tap()
-        passwordField.typeText("password123")
+        passwordField.typeText("12345678")
 
         let loginButton = app.buttons["loginButton"]
         XCTAssertTrue(loginButton.waitForExistence(timeout: 5))

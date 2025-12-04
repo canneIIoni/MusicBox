@@ -9,9 +9,7 @@
 import Foundation
 import FirebaseFirestore
 
-// Função de criar um usuário no banco de dados, e fazer um CRUD dele
 class UserFirestoreService {
-
     private let userCollection = Firestore.firestore().collection("users")
     
     private func userDocument(userID: String) -> DocumentReference {
@@ -30,14 +28,12 @@ class UserFirestoreService {
         let data: [String: Any] = [
             DBUser.CodingKeys.isPremium.rawValue : isPremium
         ]
-        
         try await userDocument(userID: userID).updateData(data)
     }
-}
-
-extension UserFirestoreService {
-    func fetchUsername(for userId: String) async throws -> String {
+    
+    // ADD THIS METHOD if it doesn't exist:
+    func fetchUsername(for userId: String) async throws -> String? {
         let user = try await getUser(userID: userId)
-        return user.username ?? "Unknown User" // Make sure DBUser has a `username` property
+        return user.username // Make sure DBUser has a `username` property
     }
 }

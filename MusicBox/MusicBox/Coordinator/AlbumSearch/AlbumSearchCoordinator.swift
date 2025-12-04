@@ -14,13 +14,13 @@ public class AlbumSearchCoordinator: ObservableObject {
     @Published public var path: [AlbumSearchDestinationEnum] = []
     @Published public var sheet: AlbumSearchSheetEnum? = nil
     @Published public var fullscreenCover: AlbumSearchFullscreenCoverEnum? = nil
-    
-    public var userId: String
-    public var username: String?
 
-    public init(userId: String, username: String?) {
-        self.userId = userId
-        self.username = username
+    private let authenticationService: Authenticating
+    private let userManager: UserFirestoreService
+
+    init(authenticationService: Authenticating, userManager: UserFirestoreService) {
+        self.authenticationService = authenticationService
+        self.userManager = userManager
     }
 
     // MARK: - Navigation
@@ -50,8 +50,20 @@ public class AlbumSearchCoordinator: ObservableObject {
     }
 
     func buildAlbumDetail(album: Album) -> AnyView {
-        AnyView(AlbumDetailView(album: album, userId: userId, username: username, coordinator: nil))
+        let viewModel = AlbumDetailViewModel(
+            authenticationService: authenticationService,
+            userManager: userManager
+        )
+        
+        return AnyView(
+            AlbumDetailView(
+                album: album,
+                viewModel: viewModel,
+                coordinator: nil
+            )
+        )
     }
+
 
     // MARK: - Router
     public func view(for state: AlbumSearchDestinationEnum) -> AnyView {
