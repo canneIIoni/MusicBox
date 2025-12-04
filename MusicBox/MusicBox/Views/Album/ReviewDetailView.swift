@@ -188,12 +188,13 @@ struct ReviewTextView: View {
                     .background(Color(.systemGray6))  // <-- your gray background
                     .cornerRadius(8)
                     .padding(.bottom, 5)
+                    .accessibilityIdentifier("reviewTextEditor")
 
                 HStack {
                     Button { draft.isLiked.toggle() } label: {
                         Image(systemName: draft.isLiked ? "heart.fill" : "heart")
                             .foregroundColor(draft.isLiked ? .systemRed : .gray)
-                    }
+                    }.accessibilityIdentifier("likeButton")
 
                     InlineEditableRatingView(
                         rating: $draft.rating,
@@ -261,6 +262,7 @@ struct InlineEditableRatingView: View {
                         guard isCurrentUserOwner else { return }
                         rating = newRating(for: starIndex)
                     }
+                    .accessibilityIdentifier("inlineEditableStar")
             }
         }
     }

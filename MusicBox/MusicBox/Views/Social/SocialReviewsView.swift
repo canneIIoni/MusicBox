@@ -61,12 +61,13 @@ struct SocialReviewsView: View {
                 .padding(.horizontal)
 
                 List {
-                    ForEach(sortedAlbums) { review in
-                        Button(action: {
+                    ForEach(Array(sortedAlbums.enumerated()), id: \.element.id) { index, review in
+                        Button {
                             coordinator.navigate(to: .reviewDetail(review))
-                        }) {
+                        } label: {
                             ReviewComponentView(review: review)
                         }
+                        .accessibilityIdentifier(index == 0 ? "firstSocialReviewCell" : "SocialReviewCell_\(review.id)")
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
                     }

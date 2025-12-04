@@ -193,51 +193,85 @@ final class AlbumReviewUITests: XCTestCase {
         // You could add accessibility value or label to distinguish
     }
     
-    // MARK: - Test editing own review vs viewing others
+    // MARK: - Test that a user cannot edit someone else's review
     @MainActor
-    func testReviewEditPermissions() throws {
-        let app = launchAndLogin()
-        
-        // 1. Search and select an album
-        let searchField = app.textFields["albumSearchField"]
-        XCTAssertTrue(searchField.waitForExistence(timeout: 8))
-        searchField.tap()
-        searchField.typeText("Radiohead")
-        sleep(2)
-        
-        let firstAlbum = app.collectionViews.cells.firstMatch
-        if firstAlbum.waitForExistence(timeout: 8) {
-            firstAlbum.tap()
-        }
-        
-        // 2. Check if we can log or view review
-        let detailButton = app.buttons["albumDetailLogButton"]
-        XCTAssertTrue(detailButton.waitForExistence(timeout: 8))
-        
-        // 3. Tap to either log or view
-        detailButton.tap()
-        
-        // 4. Check if "(Your Review)" badge appears
-        let yourReviewBadge = app.staticTexts["(Your Review)"]
-        if yourReviewBadge.waitForExistence(timeout: 5) {
-            // This is our review - we should see Save button
-            let saveButton = app.buttons["Save"]
-            XCTAssertTrue(saveButton.waitForExistence(timeout: 5),
-                         "Should see Save button for our own review")
-            
-            // Should be able to edit text
-            let textEditor = app.textViews.firstMatch
-            XCTAssertTrue(textEditor.exists, "Should have editable TextEditor")
+    func testCannotEditSomeoneElsesReview_fromSocialTab() throws {
+        let app = XCUIApplication()
+        app.launchArguments.append("--ui-test") // optional
+        app.launch()
+
+        // ----- LOGIN AS A DIFFERENT USER (joao) -----
+        let emailField = app.textFields["loginEmailField"]
+        XCTAssertTrue(emailField.waitForExistence(timeout: 6))
+        emailField.tap()
+        emailField.typeText("joao@gmail.com")
+
+        let passwordField = app.secureTextFields["loginPasswordField"]
+        XCTAssertTrue(passwordField.waitForExistence(timeout: 6))
+        passwordField.tap()
+        passwordField.typeText("12345678")
+
+        let loginButton = app.buttons["loginButton"]
+        XCTAssertTrue(loginButton.waitForExistence(timeout: 6))
+        loginButton.tap()
+
+        // Wait for app to settle
+        XCTAssertTrue(app.wait(for: .runningForeground, timeout: 5))
+
+        // ----- NAVIGATE TO Reviews (Social) TAB -----
+        let reviewsTab = app.tabBars.buttons["Reviews"]
+        if reviewsTab.waitForExistence(timeout: 6) {
+            reviewsTab.tap()
         } else {
-            // Not our review - no Save button
-            let saveButton = app.buttons["Save"]
-            XCTAssertFalse(saveButton.exists, "Should not see Save button for others' reviews")
-            
-            // Should see read-only text
-            let staticText = app.staticTexts.firstMatch
-            XCTAssertTrue(staticText.exists, "Should see review text")
+            // fallback: try symbol label
+            let alt = app.tabBars.buttons.matching(NSPredicate(format: "label CONTAINS[c] 'Review'")).firstMatch
+            XCTAssertTrue(alt.waitForExistence(timeout: 6))
+            alt.tap()
         }
+
+        // Ensure the list loaded
+        let firstReviewCell = app.buttons["firstSocialReviewCell"]
+        XCTAssertTrue(firstReviewCell.waitForExistence(timeout: 10), "No review cells found in Social feed")
+
+        // ----- OPEN A SOCIAL REVIEW (first one) -----
+        firstReviewCell.tap()
+
+        // Now we should be on the review detail screen for that review.
+        // ----- ASSERT: Editing controls are NOT present -----
+
+        // 1) TextEditor (UITextView) should not be present
+        // TextEditor maps to a UITextView in UI tests, accessible as textViews
+        let anyTextView = app.textViews.firstMatch
+        XCTAssertFalse(anyTextView.waitForExistence(timeout: 1), "Unexpected: a TextEditor (UITextView) exists — should not be editable")
+
+        // 2) Save button should NOT be present
+        let saveButton = app.buttons["Save"]
+        XCTAssertFalse(saveButton.exists, "Save button should NOT be visible when viewing someone else's review")
+
+        // 3) Heart toggle should not be tappable (should be just an Image). Check for any heart button.
+        let heartButtonPredicate = NSPredicate(format: "label CONTAINS[c] 'heart' OR identifier CONTAINS[c] 'heart' OR value CONTAINS[c] 'heart'")
+        let heartButtons = app.buttons.matching(heartButtonPredicate)
+        XCTAssertEqual(heartButtons.count, 0, "No tappable heart buttons should exist on someone else's review")
+
+        // 4) Inline editable stars — try common identifiers or star buttons
+        // (If you have assigned accessibilityIdentifier = "inlineEditableStar" to editable stars in owner mode,
+        // this will catch them; otherwise look for tappable star buttons)
+        let inlineEditableStarButtons = app.buttons.matching(identifier: "inlineEditableStar")
+        XCTAssertEqual(inlineEditableStarButtons.count, 0, "Inline editable star controls should not exist")
+
+        let starButtonPredicate = NSPredicate(format: "label CONTAINS[c] 'star' OR identifier CONTAINS[c] 'star' OR value CONTAINS[c] 'star'")
+        let starButtons = app.buttons.matching(starButtonPredicate)
+        // Allow the existence of decorative (non-interactive) star images, but ensure there are no tappable star buttons
+        XCTAssertTrue(starButtons.count == 0 || starButtons.allElementsBoundByIndex.allSatisfy { !$0.isHittable },
+                      "There should be no tappable star buttons for someone else's review")
+
+        // 5) Optionally assert read-only text exists (review content)
+        // This is a lightweight check — look for a static text element containing some content
+        XCTAssertTrue(app.staticTexts.count > 0, "Expected some static text (review content) to be visible")
     }
+
+
+
 }
 
 // MARK: - Helper extension to clear text field
