@@ -19,6 +19,9 @@ struct SongComponentView: View {
                 Text("\(songReview.song.trackNumber). \(songReview.song.title)")
                     .font(.system(size: 20, weight: .semibold))
                     .lineLimit(2)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .multilineTextAlignment(.leading)
+
                 
                 HStack(spacing: 6) {
                     Text(songReview.song.album.artist)

@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftData
 import FirebaseAuth
 
 @MainActor
@@ -37,4 +38,31 @@ class AlbumDetailViewModel: ObservableObject {
             self.username = nil
         }
     }
+    
+    // MARK: - Average Album Rating
+    func averageRating(for album: Album, context: ModelContext) -> Double {
+        // Capture actual values (SwiftData requires this)
+        let albumName = album.name
+        let albumArtist = album.artist
+
+        let fetch = FetchDescriptor<AlbumReview>(
+            predicate: #Predicate { review in
+                review.album.name == albumName &&
+                review.album.artist == albumArtist
+            }
+        )
+
+        do {
+            let reviews = try context.fetch(fetch)
+            guard !reviews.isEmpty else { return 0 }
+
+            let total = reviews.reduce(0) { $0 + $1.rating }
+            return total / Double(reviews.count)
+
+        } catch {
+            print("⚠️ Error fetching album reviews: \(error)")
+            return 0
+        }
+    }
+
 }

@@ -228,24 +228,29 @@ struct AlbumInfoHeaderView: View {
     @Binding var imageSize: CGFloat
     
     var body: some View {
-        HStack(alignment: .top, spacing: 16) {
-            ImageComponent(album: $album, imageSize: $imageSize)
-            
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Album · \(album.year ?? "Unknown Year")")
-                    .font(.caption)
-                    .foregroundStyle(.secondaryText)
+        VStack{
+            HStack(alignment: .top, spacing: 16) {
+                ImageComponent(album: $album, imageSize: $imageSize)
                 
-                Text(album.name)
-                    .font(.system(size: 25, weight: .bold))
-                    .layoutPriority(1)
-                    .accessibilityIdentifier("albumDetailTitle")
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Album · \(album.year ?? "Unknown Year")")
+                        .font(.caption)
+                        .foregroundStyle(.secondaryText)
                 
-                Text(album.artist)
-                    .font(.system(size: 16))
+                    Text(album.name)
+                        .font(.system(size: 25, weight: .bold))
+                        .layoutPriority(1)
+                        .accessibilityIdentifier("albumDetailTitle")
+                
+                    Text(album.artist)
+                        .font(.system(size: 16))
+                }
             }
+            .padding(.top, 20)
+            
+            RatingsHistogramView(album: album)
+                    .padding(.top, 8)
         }
-        .padding(.top, 20)
     }
 }
 
@@ -284,5 +289,107 @@ struct LogButtonView: View {
             }
         }
         .accessibilityIdentifier("albumDetailLogButton")
+    }
+}
+
+struct RatingsHistogramView: View {
+    @Environment(\.modelContext) private var modelContext
+    var album: Album
+    
+    // MARK: - 10 Buckets (0.5 steps)
+    private var ratingBuckets: [Int: Int] {
+        let name = album.name
+        let artist = album.artist
+        let year = album.year ?? ""
+
+        let fetch = FetchDescriptor<AlbumReview>(
+            predicate: #Predicate { review in
+                review.album.name == name &&
+                review.album.artist == artist &&
+                (review.album.year ?? "") == year
+            }
+        )
+        
+        guard let reviews = try? modelContext.fetch(fetch) else { return [:] }
+
+        var buckets: [Int: Int] = Dictionary(uniqueKeysWithValues: (1...10).map { ($0, 0) })
+
+        for review in reviews {
+            let rating = review.rating
+            let bucket = min(10, max(1, Int((rating / 0.5).rounded()))) // 0–5 mapped into 1–10
+            buckets[bucket, default: 0] += 1
+        }
+
+        return buckets
+    }
+
+
+    private var averageRating: Double {
+        let name = album.name
+        let artist = album.artist
+        let year = album.year
+
+        let fetch = FetchDescriptor<AlbumReview>(
+            predicate: #Predicate { review in
+                review.album.name == name &&
+                review.album.artist == artist &&
+                review.album.year == year
+            }
+        )
+
+        guard let reviews = try? modelContext.fetch(fetch), !reviews.isEmpty else { return 0 }
+
+        let total = reviews.reduce(0) { $0 + $1.rating }
+        return total / Double(reviews.count)
+    }
+
+    
+    // MARK: - View
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            
+            Text("RATINGS")
+                .font(.subheadline).bold()
+                .foregroundStyle(.secondaryText)
+            
+            HStack(alignment: .center) {
+                
+                // LEFT STAR ICON
+                Image(systemName: "star.fill")
+                    .foregroundColor(.systemRed)
+                    .font(.system(size: 12))
+                
+                // HISTOGRAM (10 buckets, grows from center)
+                HStack(spacing: 3) {
+                    ForEach(1...10, id: \.self) { bucket in
+                        
+                        let count = ratingBuckets[bucket] ?? 0
+                        let height = CGFloat( max(4, count * 7) )
+
+                        ZStack {
+                            Capsule()
+                                .fill(Color.gray.opacity(0.4))
+                                .frame(width: 12, height: height)
+                        }
+                        .frame(height: height, alignment: .center)  // Grows from center
+                        .animation(.easeInOut(duration: 0.3), value: ratingBuckets)
+                    }
+                }
+                    
+                ForEach(0..<5) { _ in
+                    Image(systemName: "star.fill")
+                        .foregroundColor(.systemRed)
+                        .font(.system(size: 12))
+                }
+                Spacer()
+                        
+                Text("\(averageRating, specifier: "%.1f")")
+                .font(.headline)
+                .foregroundColor(.white)
+                .fixedSize() // prevents pushing stars
+            }
+        }
+        .padding(.top, 6)
+        .padding(.trailing, 20)
     }
 }
