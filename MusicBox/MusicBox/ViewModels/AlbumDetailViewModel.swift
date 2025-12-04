@@ -24,8 +24,14 @@ class AlbumDetailViewModel: ObservableObject {
         do {
             let authResult = try authenticationService.getAuthenticatedUser()
             let user = try await userManager.getUser(userID: authResult.uid)
-            // FIX: Make sure DBUser has a username property
-            self.username = user.email
+
+            if let email = user.email,
+               let usernamePart = email.split(separator: "@").first {
+                self.username = String(usernamePart)
+            } else {
+                self.username = nil
+            }
+
         } catch {
             print("❌ Failed to fetch username: \(error)")
             self.username = nil

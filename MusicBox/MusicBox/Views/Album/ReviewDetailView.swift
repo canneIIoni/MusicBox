@@ -36,7 +36,7 @@ struct ReviewDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                AlbumHeaderView(album: review.album, imageSize: $imageSize)
+                AlbumHeaderView(review: review, imageSize: $imageSize)
 
                 ReviewInfoView(
                     draft: draft,
@@ -116,24 +116,28 @@ struct ReviewDetailView: View {
 // MARK: - Album Header
 
 struct AlbumHeaderView: View {
-    let album: Album
+    let review: AlbumReview
     @Binding var imageSize: CGFloat
     
     var body: some View {
         HStack(alignment: .top, spacing: 16) {
-            ImageComponent(album: .constant(album), imageSize: $imageSize)
+            ImageComponent(album: .constant(review.album), imageSize: $imageSize)
             
             VStack(alignment: .leading, spacing: 4) {
-                Text("Album · \(album.year ?? "Unknown Year")")
+                Text("Album · \(review.album.year ?? "Unknown Year")")
                     .font(.caption)
                     .foregroundStyle(.secondaryText)
-                
-                Text(album.name)
+
+                Text(review.album.name)
                     .font(.system(size: 25, weight: .bold))
                     .layoutPriority(1)
-                
-                Text(album.artist)
+
+                Text(review.album.artist)
                     .font(.system(size: 16))
+                    .foregroundStyle(.gray)
+                
+                Text("Reviewed on \(review.date.formatted(date: .abbreviated, time: .omitted))")
+                    .font(.caption)
                     .foregroundStyle(.gray)
             }
         }

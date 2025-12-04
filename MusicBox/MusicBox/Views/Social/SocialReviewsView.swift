@@ -47,7 +47,7 @@ struct SocialReviewsView: View {
             .ignoresSafeArea()
 
             VStack(alignment: .leading) {
-                Text("Logged Albums")
+                Text("Social Feed")
                     .font(.system(size: 25, weight: .bold))
                     .padding(.vertical)
                     .padding(.leading)
@@ -70,7 +70,6 @@ struct SocialReviewsView: View {
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
                     }
-                    .onDelete(perform: deleteAlbum) // Enables swipe-to-delete
                 }
                 .scrollContentBackground(.hidden)
                 .listStyle(.plain)
@@ -100,15 +99,5 @@ struct SocialReviewsView: View {
                 }
             }
         }
-    }
-
-    private func deleteAlbum(at offsets: IndexSet) {
-        for index in offsets {
-            let albumToDelete = sortedAlbums[index]
-            if let actualIndex = reviews.firstIndex(where: { $0.id == albumToDelete.id }) {
-                modelContext.delete(reviews[actualIndex])
-            }
-        }
-        try? modelContext.save()
     }
 }

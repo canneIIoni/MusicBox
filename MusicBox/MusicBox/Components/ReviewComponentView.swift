@@ -21,37 +21,48 @@ struct ReviewComponentView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .top, spacing: 12) {
                 
-                // Album image (local or remote)
-                if let localImage = review.album.albumImage {
-                    Image(uiImage: localImage)
-                        .resizable()
-                        .frame(width: imageSize, height: imageSize)
-                        .scaledToFill()
-                        .clipShape(RoundedRectangle(cornerRadius: 4))
-                } else if let remoteImageURL, let url = URL(string: remoteImageURL) {
-                    AsyncImage(url: url) { phase in
-                        switch phase {
-                        case .empty:
-                            ProgressView().frame(width: imageSize, height: imageSize)
-                        case .success(let image):
-                            image
-                                .resizable()
-                                .frame(width: imageSize, height: imageSize)
-                                .scaledToFill()
-                                .clipShape(RoundedRectangle(cornerRadius: 4))
-                        case .failure:
-                            fallbackImage
-                        @unknown default:
-                            fallbackImage
+                // --- LEFT SIDE: IMAGE + DATE ---
+                VStack(alignment: .leading, spacing: 4) {
+                    
+                    // Album image (local or remote)
+                    if let localImage = review.album.albumImage {
+                        Image(uiImage: localImage)
+                            .resizable()
+                            .frame(width: imageSize, height: imageSize)
+                            .scaledToFill()
+                            .clipShape(RoundedRectangle(cornerRadius: 4))
+                    } else if let remoteImageURL, let url = URL(string: remoteImageURL) {
+                        AsyncImage(url: url) { phase in
+                            switch phase {
+                            case .empty:
+                                ProgressView()
+                                    .frame(width: imageSize, height: imageSize)
+                            case .success(let image):
+                                image
+                                    .resizable()
+                                    .frame(width: imageSize, height: imageSize)
+                                    .scaledToFill()
+                                    .clipShape(RoundedRectangle(cornerRadius: 4))
+                            case .failure:
+                                fallbackImage
+                            @unknown default:
+                                fallbackImage
+                            }
                         }
+                    } else {
+                        fallbackImage
                     }
-                } else {
-                    fallbackImage
+                    
+                    // Relative Date under the image
+                    Text(relativeDate)
+                        .font(.caption2)
+                        .foregroundColor(.gray.opacity(0.8))
                 }
                 
+                // --- RIGHT SIDE ---
                 VStack(alignment: .leading, spacing: 0) {
                     
-                    // Title + HEART on same row
+                    // Title + HEART
                     HStack(alignment: .firstTextBaseline) {
                         GeometryReader { geometry in
                             Text(review.album.name)
@@ -87,8 +98,8 @@ struct ReviewComponentView: View {
                         .foregroundColor(.gray)
                         .padding(.top, -2)
                     
-                    // Rating + Username (unchanged)
-                    VStack(alignment: .leading, spacing: 0) {
+                    // Rating + Username
+                    VStack(alignment: .leading, spacing: 2) {
                         HStack(alignment: .center) {
                             RatingView(
                                 rating: .constant(review.rating),
@@ -102,8 +113,8 @@ struct ReviewComponentView: View {
                                 .font(.subheadline)
                                 .foregroundColor(.gray)
                         }
-                        .padding(.top, 2)
                     }
+                    .padding(.top, 2)
                 }
                 
                 Spacer()
@@ -126,6 +137,13 @@ struct ReviewComponentView: View {
             .frame(width: imageSize, height: imageSize)
             .overlay(Text("No Image").foregroundColor(.gray))
             .clipShape(RoundedRectangle(cornerRadius: 4))
+    }
+    
+    // MARK: - Relative Time Formatter
+    private var relativeDate: String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .short   // "2h ago"
+        return formatter.localizedString(for: review.date, relativeTo: Date())
     }
 }
 
