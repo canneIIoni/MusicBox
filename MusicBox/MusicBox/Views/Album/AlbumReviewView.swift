@@ -49,7 +49,7 @@ struct AlbumReviewView: View {
                 VStack(alignment: .leading) {
                     Text("Rating")
                         .font(.system(size: 16, weight: .bold))
-                    RatingView(rating: $review.rating, starSize: $starSize, editable: $starEditable)
+                    RatingView(rating: $review.rating, starSize: $starSize, editable: starEditable)
                         .accessibilityIdentifier("albumReviewRatingView")
                 }.padding(.bottom)
                 

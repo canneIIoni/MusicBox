@@ -10,14 +10,12 @@ import SwiftUI
 
 struct RatingView: View {
     @Binding var rating: Double
-
-    private let maxStars = 5
     @Binding var starSize: CGFloat
-    @Binding var editable: Bool
+    var editable: Bool  
 
     var body: some View {
         HStack(spacing: starSize * 0.2) {
-            ForEach(0..<maxStars, id: \.self) { index in
+            ForEach(0..<5, id: \.self) { index in
                 starView(for: index)
                     .onTapGesture {
                         if editable {

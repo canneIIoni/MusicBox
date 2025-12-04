@@ -11,88 +11,109 @@ import FirebaseAuth
 
 struct ReviewDetailView: View {
     @Environment(\.modelContext) private var modelContext
-    
+    @Environment(\.dismiss) private var dismiss
+
     @State var review: AlbumReview
+    @StateObject private var draft: AlbumReviewDraft
+
     @State private var starSize: CGFloat = 25
     @State private var imageSize: CGFloat = 147
     @State private var showSaveAlert = false
+    @State private var showBackWarning = false
+
     @State private var currentUserId: String? = nil
-    
-    // Check if current user is the review owner
+
+    init(review: AlbumReview) {
+        _review = State(initialValue: review)
+        _draft = StateObject(wrappedValue: review.makeDraft())
+    }
+
     private var isCurrentUserOwner: Bool {
-        guard let currentUserId = currentUserId else { return false }
+        guard let currentUserId else { return false }
         return review.userId == currentUserId
     }
-    
+
     var body: some View {
-        ZStack {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                AlbumHeaderView(album: review.album, imageSize: $imageSize)
+
+                ReviewInfoView(
+                    draft: draft,
+                    starSize: $starSize,
+                    isCurrentUserOwner: isCurrentUserOwner
+                )
+
+                ReviewTextView(
+                    draft: draft,
+                    isCurrentUserOwner: isCurrentUserOwner
+                )
+
+                SongReviewsView(
+                    draft: draft,
+                    isCurrentUserOwner: isCurrentUserOwner
+                )
+            }
+            .padding(.horizontal)
+        }
+        .toolbar {
+            // Custom back button (with unsaved changes warning)
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    if review.isDifferent(from: draft) {
+                        showBackWarning = true
+                    } else {
+                        dismiss()
+                    }
+                } label: {
+                    Image(systemName: "chevron.left")
+                }
+            }
+
+            // Save button (only if owner)
+            if isCurrentUserOwner {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Save") {
+                        review.applyDraft(draft)
+                        try? modelContext.save()
+                        showSaveAlert = true
+                    }
+                    .foregroundStyle(.systemRed)
+                }
+            }
+        }
+
+        // ✅ Added GRADIENT BACKGROUND (same as AlbumDetailView)
+        .background(
             LinearGradient(
                 gradient: Gradient(colors: [Color.backgroundColorDark, Color.background]),
                 startPoint: .top,
                 endPoint: .center
             )
             .ignoresSafeArea()
-            
-            ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    
-                    // Album Header
-                    AlbumHeaderView(album: review.album, imageSize: $imageSize)
-                    
-                    // Review Info
-                    ReviewInfoView(
-                        review: $review,
-                        starSize: $starSize,
-                        isCurrentUserOwner: isCurrentUserOwner
-                    )
-                    
-                    // Review Text
-                    ReviewTextView(
-                        review: $review,
-                        isCurrentUserOwner: isCurrentUserOwner
-                    )
-                    
-                    // Song Reviews
-                    SongReviewsView(
-                        review: review,
-                        isCurrentUserOwner: isCurrentUserOwner
-                    )
-                    
-                    Spacer()
-                }
-                .padding(.horizontal, 15)
-            }
-        }
-        .navigationTitle("")
-        .toolbar {
-            
-            // Only show save button if user owns the review
-            if isCurrentUserOwner {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Save") {
-                        do {
-                            try modelContext.save()
-                            showSaveAlert = true
-                        } catch {
-                            print("❌ Failed to save review: \(error)")
-                        }
-                    }
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundStyle(.systemRed)
-                    .accessibilityIdentifier("reviewSaveButton")
-                }
-            }
-        }
-        
+        )
+
         .alert("Review Saved", isPresented: $showSaveAlert) {
-            Button("OK", role: .cancel) { }
+            Button("OK", role: .cancel) {}
+        }
+        .alert("Unsaved changes", isPresented: $showBackWarning) {
+            Button("Stay", role: .cancel) {}
+            Button("Discard Changes", role: .destructive) {
+                dismiss()
+            }
+        } message: {
+            Text("You have unsaved changes. Leaving will discard them.")
         }
         .onAppear {
-            // Get current user ID
             currentUserId = Auth.auth().currentUser?.uid
         }
+        .navigationBarBackButtonHidden(true)
     }
 }
+
+
+
+// MARK: - Album Header
 
 struct AlbumHeaderView: View {
     let album: Album
@@ -120,130 +141,222 @@ struct AlbumHeaderView: View {
     }
 }
 
+
+// MARK: - Review Info (Stars under album header)
+
 struct ReviewInfoView: View {
-    @Binding var review: AlbumReview
+    @ObservedObject var draft: AlbumReviewDraft
     @Binding var starSize: CGFloat
     let isCurrentUserOwner: Bool
-    
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // Rating - only editable if owner
-            HStack {
-                RatingView(
-                    rating: $review.rating,
-                    starSize: $starSize,
-                    editable: .constant(isCurrentUserOwner)
-                )
-                .padding(.trailing, 8)
-                
-                Spacer()
-                
-                if review.isLiked {
-                    Image(systemName: "heart.fill")
-                        .foregroundColor(.systemRed)
-                        .font(.system(size: 22))
-                }
-            }
-            
-            // Username and date
-            HStack {
-                if let username = review.username {
-                    Text(username)
-                        .font(.subheadline)
-                        .foregroundStyle(.gray)
-                }
-                
-                Text("•")
-                    .foregroundStyle(.gray)
-                
-                Text(review.date, style: .date)
-                    .font(.caption)
-                    .foregroundStyle(.gray)
-                
-                // Show owner badge
-                if isCurrentUserOwner {
-                    Text("(Your Review)")
-                        .font(.caption)
-                        .foregroundStyle(.systemRed)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(Color.systemRed.opacity(0.1))
-                        .cornerRadius(4)
-                }
+        HStack {
+            RatingView(
+                rating: $draft.rating,
+                starSize: $starSize,
+                editable: false
+            )
+            Spacer()
+            if draft.isLiked {
+                Image(systemName: "heart.fill")
+                    .foregroundColor(.systemRed)
             }
         }
     }
 }
+
+
+// MARK: - Review Text
 
 struct ReviewTextView: View {
-    @Binding var review: AlbumReview
+    @ObservedObject var draft: AlbumReviewDraft
     let isCurrentUserOwner: Bool
-    
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Review")
-                .font(.headline)
-                .foregroundStyle(.primary)
-            
+        VStack(alignment: .leading) {
+            Text("Review").font(.headline)
+
             if isCurrentUserOwner {
-                TextEditor(text: $review.text)
+                TextEditor(text: $draft.text)
+                    .scrollContentBackground(.hidden) // <-- removes the black background
                     .frame(minHeight: 100)
                     .padding(8)
-                    .background(Color(.systemGray6))
+                    .background(Color(.systemGray6))  // <-- your gray background
                     .cornerRadius(8)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-                    )
-                    .font(.body)
-                    .accessibilityIdentifier("reviewTextEditor")
-                
-                Button(action: {
-                    if isCurrentUserOwner {
-                        review.isLiked.toggle()
+                    .padding(.bottom, 5)
+
+                HStack {
+                    Button { draft.isLiked.toggle() } label: {
+                        Image(systemName: draft.isLiked ? "heart.fill" : "heart")
+                            .foregroundColor(draft.isLiked ? .systemRed : .gray)
                     }
-                }) {
-                    Image(systemName: review.isLiked ? "heart.fill" : "heart")
-                        .foregroundColor(review.isLiked ? .systemRed : .gray)
-                        .font(.system(size: 22))
+
+                    InlineEditableRatingView(
+                        rating: $draft.rating,
+                        isCurrentUserOwner: true
+                    )
                 }
-                .accessibilityIdentifier("reviewLikeButton") 
-                .disabled(!isCurrentUserOwner)
             } else {
-                // Read-only version for non-owners
-                Text(review.text.isEmpty ? "No review text yet" : review.text)
-                    .padding(12)
-                    .frame(maxWidth: .infinity, minHeight: 100, alignment: .topLeading)
-                    .background(Color(.systemGray6))
-                    .cornerRadius(8)
-                    .font(.body)
-                    .foregroundStyle(review.text.isEmpty ? .gray : .primary)
+                Text(draft.text.isEmpty ? "No review yet" : draft.text)
             }
         }
     }
 }
 
+
+// MARK: - Song Reviews
+
 struct SongReviewsView: View {
-    let review: AlbumReview
+    @ObservedObject var draft: AlbumReviewDraft
+    let isCurrentUserOwner: Bool
+
+    var body: some View {
+        VStack(alignment: .leading) {
+            Text("Songs").font(.headline)
+
+            ForEach(draft.songReviews) { songReview in
+                NavigationLink {
+                    SongDetailView(songReview: songReview)
+                } label: {
+                    SongComponentView(
+                        songReview: songReview,
+                        smallStarSize: 17,
+                        editable: isCurrentUserOwner
+                    )
+                }
+            }
+        }
+    }
+}
+
+
+// MARK: - Inline Editable Stars
+
+struct InlineEditableRatingView: View {
+    @Binding var rating: Double
     let isCurrentUserOwner: Bool
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Songs")
-                .font(.headline)
-                .foregroundStyle(.primary)
-            
-            ForEach(review.songReviews.sorted { $0.trackNumber < $1.trackNumber }) { songReview in
-                SongComponentView(
-                    songReview: .constant(songReview),
-                    smallStarSize: .constant(17),
-                    editable: isCurrentUserOwner
-                )
-                .padding(.vertical, 8)
-                .padding(.horizontal, 8)
-                .background(Color(.systemGray6))
-                .cornerRadius(8)
+        HStack(spacing: 4) {
+            ForEach(1...5, id: \.self) { starIndex in
+                Image(systemName: starFillType(for: starIndex).imageName)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 22, height: 22)
+                    .foregroundColor(.systemRed)
+                    .onTapGesture {
+                        guard isCurrentUserOwner else { return }
+                        rating = newRating(for: starIndex)
+                    }
             }
         }
+    }
+    
+    private func starFillType(for starValue: Int) -> StarFillType {
+        if rating >= Double(starValue) {
+            return .full
+        } else if rating >= Double(starValue) - 0.5 {
+            return .half
+        } else {
+            return .empty
+        }
+    }
+    
+    private func newRating(for starValue: Int) -> Double {
+        let starDouble = Double(starValue)
+
+        if rating == starDouble {
+            return starDouble - 0.5
+        } else if rating == starDouble - 0.5 {
+            return starDouble - 1
+        } else {
+            return starDouble
+        }
+    }
+}
+
+
+// MARK: - Draft Models
+
+final class SongReviewDraft: ObservableObject, Identifiable {
+    let id = UUID()
+
+    @Published var grade: Double
+    @Published var reviewText: String
+    @Published var isLiked: Bool
+    @Published var song: Song
+
+    init(grade: Double, reviewText: String, isLiked: Bool, song: Song) {
+        self.grade = grade
+        self.reviewText = reviewText
+        self.isLiked = isLiked
+        self.song = song
+    }
+}
+
+final class AlbumReviewDraft: ObservableObject {
+    @Published var text: String
+    @Published var rating: Double
+    @Published var isLiked: Bool
+    @Published var songReviews: [SongReviewDraft]
+
+    init(text: String, rating: Double, isLiked: Bool, songReviews: [SongReviewDraft]) {
+        self.text = text
+        self.rating = rating
+        self.isLiked = isLiked
+        self.songReviews = songReviews
+    }
+}
+
+
+// MARK: - AlbumReview Extensions
+
+extension AlbumReview {
+
+    func makeDraft() -> AlbumReviewDraft {
+        AlbumReviewDraft(
+            text: self.text,
+            rating: self.rating,
+            isLiked: self.isLiked,
+            songReviews: self.songReviews.map { sr in
+                SongReviewDraft(
+                    grade: sr.grade,
+                    reviewText: sr.reviewText,
+                    isLiked: sr.isLiked,
+                    song: sr.song
+                )
+            }
+        )
+    }
+
+    func applyDraft(_ draft: AlbumReviewDraft) {
+        self.text = draft.text
+        self.rating = draft.rating
+        self.isLiked = draft.isLiked
+
+        for draftSR in draft.songReviews {
+            if let target = self.songReviews.first(where: { $0.song.id == draftSR.song.id }) {
+                target.grade = draftSR.grade
+                target.reviewText = draftSR.reviewText
+                target.isLiked = draftSR.isLiked
+            }
+        }
+    }
+
+    /// 🔍 Detect if draft is different from the original review
+    func isDifferent(from draft: AlbumReviewDraft) -> Bool {
+        if self.text != draft.text { return true }
+        if self.rating != draft.rating { return true }
+        if self.isLiked != draft.isLiked { return true }
+
+        for sr in draft.songReviews {
+            guard let original = self.songReviews.first(where: { $0.song.id == sr.song.id }) else { continue }
+
+            if original.grade != sr.grade { return true }
+            if original.reviewText != sr.reviewText { return true }
+            if original.isLiked != sr.isLiked { return true }
+        }
+
+        return false
     }
 }

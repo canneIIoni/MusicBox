@@ -5,48 +5,46 @@
 //  Created by Luca on 18/10/25.
 //
 
-
 import SwiftUI
 import SwiftData
 import FirebaseAuth
 
 struct ReviewListView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query private var reviews: [AlbumReview] // Fetch all reviews from SwiftData
-    
-    @State private var starSize: CGFloat = 25
-    @State private var starEditable: Bool = false
-    @State private var sortOption: SortOption = .dateLogged // Default sorting by date
-    @State private var currentUserId: String? = nil
-    
+    @Query private var reviews: [AlbumReview]
+
+    @State private var currentUserId: String?
+    @State private var sortOption: SortOption = .dateLogged
+
     @ObservedObject var coordinator: AlbumListCoordinator
-    
+
     enum SortOption: String, CaseIterable, Identifiable {
         case artist = "Artist"
         case album = "Album"
         case dateLogged = "Date Logged"
-        
-        var id: String { self.rawValue }
+        var id: String { rawValue }
     }
-    
-    // Filter reviews to only show those by the current user
+
     var currentUserReviews: [AlbumReview] {
-        guard let currentUserId = currentUserId else { return [] }
+        guard let currentUserId else { return [] }
         return reviews.filter { $0.userId == currentUserId }
     }
-    
-    // Sort the filtered reviews
+
     var sortedReviews: [AlbumReview] {
         switch sortOption {
         case .artist:
-            return currentUserReviews.sorted { $0.album.artist.localizedCompare($1.album.artist) == .orderedAscending }
+            return currentUserReviews.sorted {
+                $0.album.artist.localizedCompare($1.album.artist) == .orderedAscending
+            }
         case .album:
-            return currentUserReviews.sorted { $0.album.name.localizedCompare($1.album.name) == .orderedAscending }
+            return currentUserReviews.sorted {
+                $0.album.name.localizedCompare($1.album.name) == .orderedAscending
+            }
         case .dateLogged:
             return currentUserReviews.sorted { $0.date > $1.date }
         }
     }
-    
+
     var body: some View {
         ZStack {
             LinearGradient(
@@ -55,13 +53,13 @@ struct ReviewListView: View {
                 endPoint: .center
             )
             .ignoresSafeArea()
-            
+
             VStack(alignment: .leading) {
                 Text("My Reviews")
                     .font(.system(size: 25, weight: .bold))
                     .padding(.vertical)
                     .padding(.leading)
-                
+
                 Picker("Sort by", selection: $sortOption) {
                     ForEach(SortOption.allCases) { option in
                         Text(option.rawValue).tag(option)
@@ -69,7 +67,7 @@ struct ReviewListView: View {
                 }
                 .pickerStyle(.segmented)
                 .padding(.horizontal)
-                
+
                 if sortedReviews.isEmpty {
                     Spacer()
                     VStack {
@@ -89,9 +87,9 @@ struct ReviewListView: View {
                 } else {
                     List {
                         ForEach(sortedReviews) { review in
-                            Button(action: {
+                            Button {
                                 coordinator.navigate(to: .reviewDetail(review))
-                            }) {
+                            } label: {
                                 ReviewComponentView(review: review)
                             }
                             .listRowSeparator(.hidden)
@@ -104,8 +102,13 @@ struct ReviewListView: View {
                 }
             }
         }
-        .navigationTitle("")
+        .navigationBarBackButtonHidden(true)  // <-- hides back button globally
         .toolbar {
+            // REQUIRED: removes system back button fully
+            ToolbarItem(placement: .cancellationAction) {
+                EmptyView()
+            }
+
             ToolbarItem(placement: .topBarLeading) {
                 HStack {
                     Image(.musicboxLogo)
@@ -116,36 +119,27 @@ struct ReviewListView: View {
                         .foregroundStyle(.systemRed)
                 }
             }
-            
-            ToolbarItem(placement: .topBarTrailing) {
-                // Notification Bell or other toolbar items
-            }
         }
         .onAppear {
-            // Get current user ID from Firebase Auth
-            if let userId = Auth.auth().currentUser?.uid {
-                currentUserId = userId
+            if let uid = Auth.auth().currentUser?.uid {
+                currentUserId = uid
             }
             
-            // Update review dates if needed
-            for review in currentUserReviews {
-                if !review.isLogged {
-                    review.date = Date()
-                    review.isLogged = true
-                }
+            // Set dateLogged if needed
+            for review in currentUserReviews where !review.isLogged {
+                review.date = Date()
+                review.isLogged = true
             }
         }
     }
-    
+
     private func deleteReview(at offsets: IndexSet) {
         for index in offsets {
             let reviewToDelete = sortedReviews[index]
-            if let actualIndex = reviews.firstIndex(where: { $0.id == reviewToDelete.id }) {
-                modelContext.delete(reviews[actualIndex])
+            if let realIndex = reviews.firstIndex(where: { $0.id == reviewToDelete.id }) {
+                modelContext.delete(reviews[realIndex])
             }
         }
         try? modelContext.save()
     }
 }
-
-// Remove the old ReviewRowView since we're using ReviewComponentView

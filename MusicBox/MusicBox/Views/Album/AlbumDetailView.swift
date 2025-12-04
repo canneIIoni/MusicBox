@@ -261,6 +261,7 @@ struct SongsListView: View {
                     smallStarSize: .constant(17)
                 )
                 .padding(.vertical, 8)
+                .padding(.horizontal, 8)
             }
         }
     }

@@ -5,7 +5,6 @@
 //  Created by Luca on 03/10/25.
 //
 
-
 import SwiftUI
 
 struct ReviewComponentView: View {
@@ -50,54 +49,60 @@ struct ReviewComponentView: View {
                     fallbackImage
                 }
                 
-                VStack(alignment: .leading, spacing: 4) {
-                    // Album title
-                    GeometryReader { geometry in
-                        Text(review.album.name)
-                            .font(.system(size: 20, weight: .bold))
-                            .multilineTextAlignment(.leading)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .background(
-                                GeometryReader { titleGeometry in
-                                    Color.clear.preference(
-                                        key: TitleHeightKey.self,
-                                        value: titleGeometry.size.height
-                                    )
-                                }
-                            )
-                    }
-                    .frame(height: isTitleTwoLines ? 48 : singleLineHeight)
-                    .onPreferenceChange(TitleHeightKey.self) { newHeight in
-                        isTitleTwoLines = newHeight > singleLineHeight
+                VStack(alignment: .leading, spacing: 0) {
+                    
+                    // Title + HEART on same row
+                    HStack(alignment: .firstTextBaseline) {
+                        GeometryReader { geometry in
+                            Text(review.album.name)
+                                .font(.system(size: 20, weight: .bold))
+                                .multilineTextAlignment(.leading)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .background(
+                                    GeometryReader { titleGeometry in
+                                        Color.clear.preference(
+                                            key: TitleHeightKey.self,
+                                            value: titleGeometry.size.height
+                                        )
+                                    }
+                                )
+                        }
+                        .frame(height: isTitleTwoLines ? 48 : singleLineHeight)
+                        .onPreferenceChange(TitleHeightKey.self) { newHeight in
+                            isTitleTwoLines = newHeight > singleLineHeight
+                        }
+                        
+                        Spacer()
+                        
+                        if review.isLiked {
+                            Image(systemName: "heart.fill")
+                                .foregroundColor(.red)
+                                .font(.system(size: 18))
+                        }
                     }
                     
-                    // Artist & rating
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(review.album.artist)
-                            .font(.subheadline)
-                            .foregroundColor(.gray)
-                        
-                        HStack(spacing: 4) {
-                            RatingView(rating: .constant(review.rating), starSize: $starSize, editable: .constant(false))
+                    // Artist
+                    Text(review.album.artist)
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
+                        .padding(.top, -2)
+                    
+                    // Rating + Username (unchanged)
+                    VStack(alignment: .leading, spacing: 0) {
+                        HStack(alignment: .center) {
+                            RatingView(
+                                rating: .constant(review.rating),
+                                starSize: $starSize,
+                                editable: false
+                            )
                             
-                            if let username = review.username {
-                                Text(username)
-                                    .font(.subheadline)
-                                    .foregroundColor(.gray)
-                            } else {
-                                Text("Unknown")
-                                    .font(.subheadline)
-                                    .foregroundColor(.gray)
-                            }
-
-                            if review.isLiked {
-                                Image(systemName: "heart.fill")
-                                    .foregroundColor(.red)
-                                    .scaledToFit()
-                                    .frame(width: 17, height: 17)
-                            }
+                            Spacer()
+                            
+                            Text(review.username ?? "Unknown")
+                                .font(.subheadline)
+                                .foregroundColor(.gray)
                         }
-
+                        .padding(.top, 2)
                     }
                 }
                 
@@ -124,12 +129,9 @@ struct ReviewComponentView: View {
     }
 }
 
-
-// MARK: - PreferenceKey for Title Height
 struct TitleHeightKey: PreferenceKey {
     static var defaultValue: CGFloat = 0
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
         value = nextValue()
     }
 }
-
