@@ -63,7 +63,7 @@ struct ReviewComponentView: View {
                 VStack(alignment: .leading, spacing: 0) {
                     
                     // Title + HEART
-                    HStack(alignment: .firstTextBaseline) {
+                    HStack(alignment: .top) {
                         GeometryReader { geometry in
                             Text(review.album.name)
                                 .font(.system(size: 20, weight: .bold))
@@ -88,10 +88,12 @@ struct ReviewComponentView: View {
                         Image(systemName: "person.circle.fill")
                             .font(.subheadline)
                             .foregroundColor(.gray)
+                            .padding(.top, 5)
                         
                         Text(review.username ?? "Unknown")
                             .font(.subheadline)
                             .foregroundColor(.gray)
+                            .padding(.top, 5)
                         
                     }
                     
