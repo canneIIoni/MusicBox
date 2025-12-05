@@ -85,11 +85,14 @@ struct ReviewComponentView: View {
                         
                         Spacer()
                         
-                        if review.isLiked {
-                            Image(systemName: "heart.fill")
-                                .foregroundColor(.red)
-                                .font(.system(size: 18))
-                        }
+                        Image(systemName: "person.circle.fill")
+                            .font(.subheadline)
+                            .foregroundColor(.gray)
+                        
+                        Text(review.username ?? "Unknown")
+                            .font(.subheadline)
+                            .foregroundColor(.gray)
+                        
                     }
                     
                     // Artist
@@ -109,9 +112,12 @@ struct ReviewComponentView: View {
                             
                             Spacer()
                             
-                            Text(review.username ?? "Unknown")
-                                .font(.subheadline)
-                                .foregroundColor(.gray)
+                            if review.isLiked {
+                                Image(systemName: "heart.fill")
+                                    .foregroundColor(.red)
+                                    .font(.system(size: 18))
+                            }
+                              
                         }
                     }
                     .padding(.top, 2)
