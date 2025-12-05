@@ -57,7 +57,7 @@ struct AlbumTabView: View {
         TabView(selection: $selectedTab) {
             
             AlbumListCoordinatorView(coordinator: albumListCoordinator)
-                .tabItem { Label("My Albums", systemImage: "music.note.list") }
+                .tabItem { Label("My Reviews", systemImage: "music.note.list") }
                 .tag(0)
             
             AlbumSearchCoordinatorView(coordinator: albumSearchCoordinator)
@@ -65,7 +65,7 @@ struct AlbumTabView: View {
                 .tag(1)
             
             SocialReviewsCoordinatorView(coordinator: socialReviewsCoordinator)
-                .tabItem { Label("Reviews", systemImage: "text.bubble.fill") }
+                .tabItem { Label("Social", systemImage: "text.bubble.fill") }
                 .tag(2)
             
             MainProfileView(viewModel: profileViewModel)
