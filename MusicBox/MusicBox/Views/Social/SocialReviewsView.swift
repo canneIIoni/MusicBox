@@ -21,7 +21,7 @@ struct SocialReviewsView: View {
     enum SortOption: String, CaseIterable, Identifiable {
         case artist = "Artist"
         case album = "Album"
-        case dateLogged = "Date Logged"
+        case dateLogged = "Most Recent"
 
         var id: String { self.rawValue }
     }

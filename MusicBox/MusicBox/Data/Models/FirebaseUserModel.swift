@@ -14,7 +14,7 @@ struct DBUser: Codable {
     let isAnonymous: Bool?
     let photoUrl: String?
     let dateCreated: Date?
-    let isPremium: Bool?
+    var isPremium: Bool?
     
     // Music-related data (to be implemented later)
     var savedAlbums: [String]? // Album IDs
