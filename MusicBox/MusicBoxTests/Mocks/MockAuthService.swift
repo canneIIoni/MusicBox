@@ -9,8 +9,8 @@ import Foundation
 @testable import MusicBox
 
 /// Mock Authentication Service para testes
-class MockAuthService: Authenticating {
-    
+class MockAuthService: Authenticating,EmailPasswordHandling {
+
     var email: String = ""
     var password: String = ""
     var confirmPassword: String = ""
@@ -75,6 +75,18 @@ class MockAuthService: Authenticating {
     func deleteAccount() async {
         authenticationState = .unauthenticated
         onAuthStateChanged?(.unauthenticated)
+    }
+
+    func resetPassword() async throws {
+
+    }
+
+    func updateEmail(to newEmail: String) async throws {
+
+    }
+
+    func updatePassword(to newPassword: String) async throws {
+        
     }
 }
 
